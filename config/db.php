@@ -2,7 +2,7 @@
 $host = 'localhost:3307';
 $db   = 'ugandan_pos_new';
 $user = 'root';
-$pass = '19941997'; // Replace with your DB password
+$pass = 'Isbat@1234'; // Replace with your DB password
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
