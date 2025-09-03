@@ -2,6 +2,8 @@
 // controllers/reportsController.php
 ini_set('display_errors',1); error_reporting(E_ALL);
 require_once __DIR__ . '/../config/db.php';
+
+// default to JSON, CSV export will override later
 header('Content-Type: application/json');
 
 function maybe_csv(string $filename, array $header, array $rows) {
@@ -10,12 +12,18 @@ function maybe_csv(string $filename, array $header, array $rows) {
     header('Content-Disposition: attachment; filename="'.$filename.'"');
     $out = fopen('php://output', 'w');
     if ($header) fputcsv($out, $header);
-    foreach ($rows as $r) fputcsv($out, array_values($r));
+    foreach ($rows as $r) {
+      // accept associative or indexed rows
+      if (array_keys($r) !== range(0, count($r)-1)) {
+        fputcsv($out, array_values($r));
+      } else {
+        fputcsv($out, $r);
+      }
+    }
     fclose($out);
     exit;
   }
 }
-
 
 $action = $_GET['action'] ?? '';
 
@@ -29,6 +37,7 @@ function calcEOD(PDO $pdo, string $date): array {
   $start = $date . ' 00:00:00';
   $end   = $date . ' 23:59:59';
 
+  // 1) Sales rollups
   $stmt = $pdo->prepare("
     SELECT COUNT(*) AS sales_count,
            COALESCE(SUM(subtotal),0)        AS subtotal,
@@ -41,6 +50,7 @@ function calcEOD(PDO $pdo, string $date): array {
   $stmt->execute([':s'=>$start, ':e'=>$end]);
   $sales = $stmt->fetch(PDO::FETCH_ASSOC);
 
+  // 2) Payments breakdown
   $rows = $pdo->prepare("
     SELECT payment_type,
            COALESCE(SUM(total_amount),0)  AS total,
@@ -53,6 +63,7 @@ function calcEOD(PDO $pdo, string $date): array {
   $rows->execute([':s'=>$start, ':e'=>$end]);
   $payments = $rows->fetchAll(PDO::FETCH_ASSOC);
 
+  // 3) Cash movements
   $cm = $pdo->prepare("
     SELECT
       COALESCE(SUM(CASE WHEN type='in'  THEN amount END),0) AS cash_in,
@@ -63,6 +74,7 @@ function calcEOD(PDO $pdo, string $date): array {
   $cm->execute([':s'=>$start, ':e'=>$end]);
   $cashMoves = $cm->fetch(PDO::FETCH_ASSOC);
 
+  // 4) Credit payments
   $cp = $pdo->prepare("
     SELECT COALESCE(SUM(amount),0) AS credit_payments
     FROM credit_payments
@@ -71,6 +83,7 @@ function calcEOD(PDO $pdo, string $date): array {
   $cp->execute([':s'=>$start, ':e'=>$end]);
   $creditPayments = (float)$cp->fetch(PDO::FETCH_ASSOC)['credit_payments'];
 
+  // 5) Shift open/close
   $shift = $pdo->prepare("
     SELECT
       COALESCE((SELECT opening_balance FROM shifts
@@ -84,6 +97,7 @@ function calcEOD(PDO $pdo, string $date): array {
   $opening = (float)$shiftVals['opening_balance'];
   $closing = isset($shiftVals['closing_balance']) ? (float)$shiftVals['closing_balance'] : null;
 
+  // 6) Cash net from sales
   $cashSalesStmt = $pdo->prepare("
     SELECT COALESCE(SUM(paid_amount - change_amount),0) AS cash_net
     FROM sales
@@ -221,7 +235,14 @@ try {
       $stmt->bindValue(':lim',$lim,PDO::PARAM_INT);
       $stmt->bindValue(':off',$off,PDO::PARAM_INT);
       $stmt->execute();
-      echo json_encode(['success'=>true,'rows'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
+      $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+      // CSV export for this report
+      maybe_csv('sales_by_product.csv', ['product','qty','revenue'],
+        array_map(fn($r)=>[$r['name'],$r['qty'],$r['revenue']], $data)
+      );
+
+      echo json_encode(['success'=>true,'rows'=>$data]);
       break;
     }
 
@@ -245,16 +266,18 @@ try {
 
     case 'sales_by_payment': {
       [$s,$e]=dtRange();
-      $sql="
-        SELECT payment_type,
-               COUNT(*) sales_count,
-               SUM(total_amount) total
+      $rows = $pdo->prepare("
+        SELECT payment_type, COUNT(*) sales_count, SUM(total_amount) total
         FROM sales
         WHERE created_at BETWEEN :s AND :e
         GROUP BY payment_type
-        ORDER BY total DESC";
-      $stmt=$pdo->prepare($sql); $stmt->execute([':s'=>$s,':e'=>$e]);
-      echo json_encode(['success'=>true,'rows'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        ORDER BY total DESC
+      ");
+      $rows->execute([':s'=>$s,':e'=>$e]);
+      $data = $rows->fetchAll(PDO::FETCH_ASSOC);
+
+      maybe_csv('sales_by_payment.csv', ['payment_type','sales_count','total'], $data);
+      echo json_encode(['success'=>true,'rows'=>$data]);
       break;
     }
 
@@ -276,100 +299,72 @@ try {
 
     /* ---------- INVENTORY ---------- */
     case 'stock_levels': {
-<<<<<<< HEAD
-  $q     = trim($_GET['q'] ?? '');
-  $catId = (int)($_GET['category_id'] ?? 0);
-  $only  = $_GET['only'] ?? ''; // '', 'low', 'out'
+      $q     = trim($_GET['q'] ?? '');
+      $catId = (int)($_GET['category_id'] ?? 0);
+      $only  = $_GET['only'] ?? ''; // '', 'low', 'out'
 
-  $sql = "
-    SELECT p.id, p.name, p.sku, p.stock_alert_threshold,
-           c.name AS category,
-           COALESCE(SUM(CASE WHEN i.type='in'  THEN i.quantity ELSE 0 END),0)
-         - COALESCE(SUM(CASE WHEN i.type='out' THEN i.quantity ELSE 0 END),0) AS on_hand
-    FROM products p
-    LEFT JOIN inventories i ON i.product_id=p.id
-    LEFT JOIN categories  c ON c.id=p.category_id
-    WHERE 1=1
-  ";
-
-  $params = [];
-  if ($q !== '') {
-    $sql .= " AND (p.name LIKE :q OR p.sku LIKE :q) ";
-    $params[':q'] = "%{$q}%";
-  }
-  if ($catId) {
-    $sql .= " AND p.category_id = :cid ";
-    $params[':cid'] = $catId;
-  }
-
-  $sql .= "
-    GROUP BY p.id, p.name, p.sku, p.stock_alert_threshold, c.name
-    HAVING 1=1
-  ";
-
-  if ($only === 'out') {
-    $sql .= " AND on_hand <= 0 ";
-  } elseif ($only === 'low') {
-    $sql .= " AND on_hand <= COALESCE(p.stock_alert_threshold, 0) ";
-  }
-
-  $sql .= " ORDER BY on_hand ASC, p.name ASC ";
-
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute($params);
-  $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-  // CSV export if requested
-  maybe_csv('stock_levels.csv', ['sku','name','category','on_hand','threshold'],
-    array_map(fn($r)=>[
-      $r['sku'],$r['name'],$r['category'],$r['on_hand'],$r['stock_alert_threshold']
-    ], $data)
-  );
-
-  echo json_encode(['success'=>true,'rows'=>$data]);
-  break;
-}
-
-=======
-      $sql="
+      $sql = "
         SELECT p.id, p.name, p.sku, p.stock_alert_threshold,
+               c.name AS category,
                COALESCE(SUM(CASE WHEN i.type='in'  THEN i.quantity ELSE 0 END),0)
-               - COALESCE(SUM(CASE WHEN i.type='out' THEN i.quantity ELSE 0 END),0) AS on_hand
+             - COALESCE(SUM(CASE WHEN i.type='out' THEN i.quantity ELSE 0 END),0) AS on_hand
         FROM products p
         LEFT JOIN inventories i ON i.product_id=p.id
-        GROUP BY p.id, p.name, p.sku, p.stock_alert_threshold
-        ORDER BY on_hand ASC";
-      $rows=$pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-      echo json_encode(['success'=>true,'rows'=>$rows]);
+        LEFT JOIN categories  c ON c.id=p.category_id
+        WHERE 1=1
+      ";
+
+      $params = [];
+      if ($q !== '') {
+        $sql .= " AND (p.name LIKE :q OR p.sku LIKE :q) ";
+        $params[':q'] = "%{$q}%";
+      }
+      if ($catId) {
+        $sql .= " AND p.category_id = :cid ";
+        $params[':cid'] = $catId;
+      }
+
+      $sql .= "
+        GROUP BY p.id, p.name, p.sku, p.stock_alert_threshold, c.name
+        HAVING 1=1
+      ";
+
+      if ($only === 'out') {
+        $sql .= " AND on_hand <= 0 ";
+      } elseif ($only === 'low') {
+        $sql .= " AND on_hand <= COALESCE(p.stock_alert_threshold, 0) ";
+      }
+
+      $sql .= " ORDER BY on_hand ASC, p.name ASC ";
+
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute($params);
+      $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+      maybe_csv('stock_levels.csv', ['sku','name','category','on_hand','threshold'],
+        array_map(fn($r)=>[
+          $r['sku'],$r['name'],$r['category'],$r['on_hand'],$r['stock_alert_threshold']
+        ], $data)
+      );
+
+      echo json_encode(['success'=>true,'rows'=>$data]);
       break;
     }
->>>>>>> 9f01ee8fe0c0f04f953f7174d298f771c9bc24ea
 
     case 'stock_valuation': {
-      $sql="
-        WITH q AS (
-          SELECT p.id,
-                 COALESCE(SUM(CASE WHEN i.type='in'  THEN i.quantity END),0)
-               - COALESCE(SUM(CASE WHEN i.type='out' THEN i.quantity END),0) AS on_hand,
-                 p.avg_cost, p.last_cost, p.name, p.sku
-          FROM products p
-          LEFT JOIN inventories i ON i.product_id=p.id
-          GROUP BY p.id, p.avg_cost, p.last_cost, p.name, p.sku
-        )
-        SELECT id, name, sku, on_hand,
-               COALESCE(NULLIF(avg_cost,0), last_cost, 0) as cost_basis,
-               on_hand * COALESCE(NULLIF(avg_cost,0), last_cost, 0) as value
-        FROM q
-        ORDER BY value DESC";
-      $rows=$pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-      $total = array_sum(array_column($rows,'value'));
-      echo json_encode(['success'=>true,'rows'=>$rows,'total_value'=>$total]);
-      break;
-    }
+      // Advanced valuation with filters & category summary
+      $q            = trim($_GET['q'] ?? '');
+      $catId        = (int)($_GET['category_id'] ?? 0);
+      $minOnHand    = is_numeric($_GET['min_on_hand'] ?? '') ? (int)$_GET['min_on_hand'] : 0;
+      $includeZero  = (int)($_GET['include_zero'] ?? 0);
+      $basis        = strtolower($_GET['cost_basis'] ?? 'smart'); // smart|avg|last
 
-    case 'reorder_alerts': {
-      $sql="
-        WITH stock AS (
+      $costExpr = "COALESCE(NULLIF(p.avg_cost,0), p.last_cost, 0)";
+      if ($basis === 'avg')  $costExpr = "COALESCE(p.avg_cost, 0)";
+      if ($basis === 'last') $costExpr = "COALESCE(p.last_cost, 0)";
+
+      $sql = "
+        WITH qty AS (
           SELECT p.id,
                  COALESCE(SUM(CASE WHEN i.type='in'  THEN i.quantity END),0)
                - COALESCE(SUM(CASE WHEN i.type='out' THEN i.quantity END),0) AS on_hand
@@ -377,16 +372,118 @@ try {
           LEFT JOIN inventories i ON i.product_id=p.id
           GROUP BY p.id
         )
-        SELECT p.id, p.name, p.sku, p.stock_alert_threshold, s.on_hand
+        SELECT p.id, p.sku, p.name, c.name AS category,
+               q.on_hand,
+               {$costExpr} AS cost_basis_used,
+               (q.on_hand * {$costExpr}) AS value
         FROM products p
-        JOIN stock s ON s.id=p.id
-        WHERE p.stock_alert_threshold IS NOT NULL
-          AND s.on_hand <= p.stock_alert_threshold
-        ORDER BY s.on_hand ASC";
-      $rows=$pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-      echo json_encode(['success'=>true,'rows'=>$rows]);
+        LEFT JOIN categories c ON c.id=p.category_id
+        JOIN qty q ON q.id=p.id
+        WHERE 1=1
+      ";
+
+      $params = [];
+      if ($q !== '') {
+        $sql   .= " AND (p.name LIKE :q OR p.sku LIKE :q) ";
+        $params[':q'] = "%{$q}%";
+      }
+      if ($catId) {
+        $sql   .= " AND p.category_id = :cid ";
+        $params[':cid'] = $catId;
+      }
+      if (!$includeZero) {
+        $sql   .= " AND q.on_hand > 0 ";
+      }
+      if ($minOnHand > 0) {
+        $sql   .= " AND q.on_hand >= :minoh ";
+        $params[':minoh'] = $minOnHand;
+      }
+
+      $sql .= " ORDER BY value DESC, p.name ASC ";
+
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute($params);
+      $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+      $byCat = [];
+      $totalValue = 0;
+      $totalUnits = 0;
+      foreach ($rows as $r) {
+        $v = (float)$r['value'];
+        $u = (int)$r['on_hand'];
+        $totalValue += $v;
+        $totalUnits += $u;
+        $cat = $r['category'] ?? 'Uncategorized';
+        if (!isset($byCat[$cat])) $byCat[$cat] = ['category'=>$cat,'value'=>0,'on_hand'=>0];
+        $byCat[$cat]['value']   += $v;
+        $byCat[$cat]['on_hand'] += $u;
+      }
+      $summary = array_values($byCat);
+
+      if (isset($_GET['export']) && strtolower($_GET['export']) === 'csv') {
+        $csv = array_map(function($r){
+          return [
+            'SKU'       => $r['sku'],
+            'Name'      => $r['name'],
+            'Category'  => $r['category'],
+            'On Hand'   => $r['on_hand'],
+            'Cost'      => number_format($r['cost_basis_used'], 2, '.', ''),
+            'Value'     => number_format($r['value'], 2, '.', ''),
+          ];
+        }, $rows);
+        $header = array_keys($csv[0] ?? ['SKU','Name','Category','On Hand','Cost','Value']);
+        maybe_csv('stock_valuation.csv', $header, $csv);
+      }
+
+      echo json_encode([
+        'success'      => true,
+        'rows'         => $rows,
+        'total_value'  => $totalValue,
+        'total_units'  => $totalUnits,
+        'basis'        => $basis,
+        'category_summary' => $summary
+      ]);
       break;
     }
+
+    case 'reorder_alerts': {
+  $sql="
+    WITH stock AS (
+      SELECT p.id,
+             COALESCE(SUM(CASE WHEN i.type='in'  THEN i.quantity END),0)
+           - COALESCE(SUM(CASE WHEN i.type='out' THEN i.quantity END),0) AS on_hand
+      FROM products p
+      LEFT JOIN inventories i ON i.product_id=p.id
+      GROUP BY p.id
+    )
+    SELECT p.id, p.name, p.sku, p.stock_alert_threshold, s.on_hand
+    FROM products p
+    JOIN stock s ON s.id=p.id
+    WHERE p.stock_alert_threshold IS NOT NULL
+      AND s.on_hand <= p.stock_alert_threshold
+    ORDER BY s.on_hand ASC";
+  $rows=$pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+  // CSV
+  maybe_csv(
+    'reorder_alerts.csv',
+    ['sku','name','on_hand','threshold','gap'],
+    array_map(
+      fn($r)=>[
+        $r['sku'],
+        $r['name'],
+        (int)$r['on_hand'],
+        (int)$r['stock_alert_threshold'],
+        (int)$r['stock_alert_threshold'] - (int)$r['on_hand'],
+      ],
+      $rows
+    )
+  );
+
+  echo json_encode(['success'=>true,'rows'=>$rows]);
+  break;
+}
+
 
     case 'expiry_report': {
       $days = (int)($_GET['days'] ?? 60);
@@ -505,86 +602,153 @@ try {
       break;
     }
 
-    case 'sales_by_payment': {
-        [$s,$e]=dtRange();
-        $rows = $pdo->prepare("
-          SELECT payment_type, COUNT(*) sales_count, SUM(total_amount) total
-          FROM sales
-          WHERE created_at BETWEEN :s AND :e
-          GROUP BY payment_type
-          ORDER BY total DESC
-        ");
-        $rows->execute([':s'=>$s,':e'=>$e]);
-        $data = $rows->fetchAll(PDO::FETCH_ASSOC);
-        maybe_csv('sales_by_payment.csv',['payment_type','sales_count','total'],$data);
-        echo json_encode(['success'=>true,'rows'=>$data]);
-        break;
-      }
-        case 'slow_movers': {
-            [$s,$e]=dtRange();
-            $lim = (int)($_GET['limit'] ?? 50);
-            $stmt=$pdo->prepare("
-              SELECT p.id, p.name, SUM(si.quantity) qty, SUM(si.quantity*si.unit_price) revenue
-              FROM sale_items si
-              JOIN products p ON p.id=si.product_id
-              JOIN sales s  ON s.id=si.sale_id
-              WHERE s.created_at BETWEEN :s AND :e
-              GROUP BY p.id,p.name
-              HAVING qty IS NOT NULL
-              ORDER BY qty ASC, revenue ASC
-              LIMIT :lim
-            ");
-            $stmt->bindValue(':s',$s); $stmt->bindValue(':e',$e);
-            $stmt->bindValue(':lim',$lim,PDO::PARAM_INT);
-            $stmt->execute();
-            $data=$stmt->fetchAll(PDO::FETCH_ASSOC);
-            maybe_csv('slow_movers.csv',['name','qty','revenue'],$data);
-            echo json_encode(['success'=>true,'rows'=>$data]);
-            break;
-          }
-          case 'customer_history': {
-            $cid = (int)($_GET['customer_id'] ?? 0);
-            if (!$cid) { echo json_encode(['success'=>false,'message'=>'customer_id required']); break; }
-            [$s,$e]=dtRange();
-            $stmt=$pdo->prepare("
-              SELECT s.id sale_id, s.created_at, s.total_amount,
-                    SUM(si.quantity) items, SUM(si.quantity*si.unit_price) revenue
-              FROM sales s
-              LEFT JOIN sale_items si ON si.sale_id=s.id
-              WHERE s.customer_id=:cid AND s.created_at BETWEEN :s AND :e
-              GROUP BY s.id
-              ORDER BY s.created_at DESC
-            ");
-            $stmt->execute([':cid'=>$cid,':s'=>$s,':e'=>$e]);
-            $data=$stmt->fetchAll(PDO::FETCH_ASSOC);
-            maybe_csv("customer_{$cid}_history.csv",['sale_id','created_at','total_amount','items','revenue'],$data);
-            echo json_encode(['success'=>true,'rows'=>$data]);
-            break;
-          }
+    /* ---------- Utility ---------- */
+    case 'slow_movers': {
+      [$s,$e]=dtRange();
+      $lim = (int)($_GET['limit'] ?? 50);
+      $stmt=$pdo->prepare("
+        SELECT p.id, p.name, SUM(si.quantity) qty, SUM(si.quantity*si.unit_price) revenue
+        FROM sale_items si
+        JOIN products p ON p.id=si.product_id
+        JOIN sales s  ON s.id=si.sale_id
+        WHERE s.created_at BETWEEN :s AND :e
+        GROUP BY p.id,p.name
+        HAVING qty IS NOT NULL
+        ORDER BY qty ASC, revenue ASC
+        LIMIT :lim
+      ");
+      $stmt->bindValue(':s',$s); $stmt->bindValue(':e',$e);
+      $stmt->bindValue(':lim',$lim,PDO::PARAM_INT);
+      $stmt->execute();
+      $data=$stmt->fetchAll(PDO::FETCH_ASSOC);
+      maybe_csv('slow_movers.csv',['name','qty','revenue'],$data);
+      echo json_encode(['success'=>true,'rows'=>$data]);
+      break;
+    }
 
-        case 'void_cancel_report': {
-          [$s,$e]=dtRange();
-          $stmt=$pdo->prepare("
-            SELECT status, COUNT(*) cnt, SUM(total_amount) total
-            FROM sales
-            WHERE created_at BETWEEN :s AND :e AND status IN ('void','cancelled','refunded')
-            GROUP BY status
-          ");
-          $stmt->execute([':s'=>$s,':e'=>$e]);
-          $data=$stmt->fetchAll(PDO::FETCH_ASSOC);
-          maybe_csv('void_cancel.csv',['status','count','total'],$data);
-          echo json_encode(['success'=>true,'rows'=>$data]);
-          break;
-        }
-<<<<<<< HEAD
-        case 'categories': {
-  $rows = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+    case 'customer_history': {
+      $cid = (int)($_GET['customer_id'] ?? 0);
+      if (!$cid) { echo json_encode(['success'=>false,'message'=>'customer_id required']); break; }
+      [$s,$e]=dtRange();
+      $stmt=$pdo->prepare("
+        SELECT s.id sale_id, s.created_at, s.total_amount,
+              SUM(si.quantity) items, SUM(si.quantity*si.unit_price) revenue
+        FROM sales s
+        LEFT JOIN sale_items si ON si.sale_id=s.id
+        WHERE s.customer_id=:cid AND s.created_at BETWEEN :s AND :e
+        GROUP BY s.id
+        ORDER BY s.created_at DESC
+      ");
+      $stmt->execute([':cid'=>$cid,':s'=>$s,':e'=>$e]);
+      $data=$stmt->fetchAll(PDO::FETCH_ASSOC);
+      maybe_csv("customer_{$cid}_history.csv",['sale_id','created_at','total_amount','items','revenue'],$data);
+      echo json_encode(['success'=>true,'rows'=>$data]);
+      break;
+    }
+
+    case 'void_cancel_report': {
+      [$s,$e]=dtRange();
+      $stmt=$pdo->prepare("
+        SELECT status, COUNT(*) cnt, SUM(total_amount) total
+        FROM sales
+        WHERE created_at BETWEEN :s AND :e AND status IN ('void','cancelled','refunded')
+        GROUP BY status
+      ");
+      $stmt->execute([':s'=>$s,':e'=>$e]);
+      $data=$stmt->fetchAll(PDO::FETCH_ASSOC);
+      maybe_csv('void_cancel.csv',['status','count','total'],$data);
+      echo json_encode(['success'=>true,'rows'=>$data]);
+      break;
+    }
+
+    case 'categories': {
+      $rows = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+      echo json_encode(['success'=>true,'rows'=>$rows]);
+      break;
+    }
+//PROFIT AND LOSS REPORT
+   case 'profit_and_loss': {
+  [$s,$e]=dtRange();
+
+  // Revenue & COGS
+  $stmt=$pdo->prepare("
+    SELECT
+      COALESCE(SUM(si.quantity*si.unit_price),0) AS revenue,
+      COALESCE(SUM(si.quantity * COALESCE(NULLIF(p.avg_cost,0), p.last_cost, 0)),0) AS cogs
+    FROM sale_items si
+    JOIN sales s ON s.id=si.sale_id
+    JOIN products p ON p.id=si.product_id
+    WHERE s.created_at BETWEEN :s AND :e
+  ");
+  $stmt->execute([':s'=>$s,':e'=>$e]);
+  $r=$stmt->fetch(PDO::FETCH_ASSOC);
+  $revenue=(float)$r['revenue']; $cogs=(float)$r['cogs']; $gross=$revenue-$cogs;
+
+  // Operating expenses (AP Bills not tied to PO/Receipt)
+  $qExp=$pdo->prepare("
+    SELECT COALESCE(SUM(total),0)
+    FROM ap_bills
+    WHERE bill_date BETWEEN :ds AND :de
+      AND status IN ('open','partially_paid','paid')
+      AND (po_id IS NULL AND receipt_id IS NULL)
+  ");
+  $qExp->execute([':ds'=>substr($s,0,10), ':de'=>substr($e,0,10)]);
+  $opex=(float)$qExp->fetchColumn();
+
+  // Tax, Discounts, Returns
+  $qTax=$pdo->prepare("SELECT COALESCE(SUM(tax_amount),0) FROM sales WHERE created_at BETWEEN :s AND :e");
+  $qTax->execute([':s'=>$s,':e'=>$e]); $tax_total=(float)$qTax->fetchColumn();
+
+  $qDisc=$pdo->prepare("SELECT COALESCE(SUM(discount_amount),0) FROM sales WHERE created_at BETWEEN :s AND :e");
+  $qDisc->execute([':s'=>$s,':e'=>$e]); $discount_total=(float)$qDisc->fetchColumn();
+
+  $qRet=$pdo->prepare("SELECT COALESCE(SUM(ABS(quantity)),0) FROM inventories WHERE type='return' AND created_at BETWEEN :s AND :e");
+  $qRet->execute([':s'=>$s,':e'=>$e]); $returns_qty=(float)$qRet->fetchColumn();
+
+  $net = $gross - $opex;
+
+  $out=[
+    'revenue'=>$revenue,'cogs'=>$cogs,'gross_profit'=>$gross,
+    'operating_expenses'=>$opex,'net_profit'=>$net,
+    'tax_total'=>$tax_total,'discount_total'=>$discount_total,'returns_qty'=>$returns_qty
+  ];
+
+  maybe_csv('profit_and_loss.csv',['metric','amount'],[
+    ['Revenue',$revenue],['COGS',$cogs],['Gross Profit',$gross],
+    ['Operating Expenses',$opex],['Net Profit',$net],
+    ['Tax Collected',$tax_total],['Discount Total',$discount_total],['Returned Qty',$returns_qty],
+  ]);
+  echo json_encode(['success'=>true]+$out);
+  break;
+}
+case 'pl_by_period': {
+  [$s,$e]=dtRange();
+  $grp=$_GET['group'] ?? 'day'; // day|week|month
+  $fmt = $grp==='month' ? '%Y-%m' : ($grp==='week' ? '%x-W%v' : '%Y-%m-%d');
+
+  $stmt=$pdo->prepare("
+    SELECT
+      DATE_FORMAT(s.created_at, :fmt) AS bucket,
+      COALESCE(SUM(si.quantity*si.unit_price),0) AS revenue,
+      COALESCE(SUM(si.quantity * COALESCE(NULLIF(p.avg_cost,0), p.last_cost, 0)),0) AS cogs
+    FROM sale_items si
+    JOIN sales s ON s.id=si.sale_id
+    JOIN products p ON p.id=si.product_id
+    WHERE s.created_at BETWEEN :s AND :e
+    GROUP BY bucket
+    ORDER BY bucket
+  ");
+  $stmt->execute([':fmt'=>$fmt,':s'=>$s,':e'=>$e]);
+  $rows=$stmt->fetchAll(PDO::FETCH_ASSOC);
+  foreach($rows as &$r){
+    $r['gross_profit'] = (float)$r['revenue'] - (float)$r['cogs'];
+    $r['margin_pct']   = ($r['revenue']>0) ? round(100*$r['gross_profit']/$r['revenue'],2) : 0;
+  }
+  maybe_csv('pl_by_period.csv',['bucket','revenue','cogs','gross_profit','margin_pct'],$rows);
   echo json_encode(['success'=>true,'rows'=>$rows]);
   break;
 }
 
-=======
->>>>>>> 9f01ee8fe0c0f04f953f7174d298f771c9bc24ea
 
     default:
       echo json_encode(['success'=>false,'message'=>'Unknown action']);

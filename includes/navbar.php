@@ -57,11 +57,10 @@ $notifCount = $notifStmt->fetchColumn();
   <a href="#">📊 Reports</a>
   <ul>
     <li><a href="/POS_UG/views/dashboard.php?view=reports">Report (embedded)</a></li>
-<<<<<<< HEAD
+
      <li><a href="/POS_UG/views/dashboard.php?view=reports/stock">Stock Levels</a></li>
      <li><a href="/POS_UG/views/dashboard.php?view=reports/valuation">Stock Valuation</a></li>
-=======
->>>>>>> 9f01ee8fe0c0f04f953f7174d298f771c9bc24ea
+
     <!-- Optional: keep these direct pages if you still use them -->
     <li><a href="/POS_UG/views/reports/sales_report.php">Sales Report</a></li>
     <li><a href="/POS_UG/views/reports/inventory_status.php">Inventory Status</a></li>

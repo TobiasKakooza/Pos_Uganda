@@ -69,6 +69,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'save') {
     try {
         $pdo->beginTransaction();
 
+        // prepare once – fetch product cost basis quickly per item
+        $getCost = $pdo->prepare("SELECT avg_cost, last_cost FROM products WHERE id = ?");
+
         // 1) Create sale shell
         $stmt = $pdo->prepare("
             INSERT INTO sales (total_amount, payment_type, user_id, customer_id)
@@ -81,57 +84,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'save') {
         $subtotal = 0.0;
 
         foreach ($items as $item) {
-            $productId = (int)$item['product_id'];
-            $qty       = max(1, (int)$item['quantity']);
-            $price     = (float)$item['unit_price'];
-            $lineTotal = $qty * $price;
-            $subtotal += $lineTotal;
+    $productId = (int)$item['product_id'];
+    $qty       = max(1, (int)$item['quantity']);
+    $price     = (float)$item['unit_price'];
+    $lineTotal = $qty * $price;
+    $subtotal += $lineTotal;
 
-            // current stock
-            $stockCheck = $pdo->prepare("
-                SELECT COALESCE(SUM(CASE WHEN type='in' THEN quantity ELSE -quantity END),0)
-                FROM inventories WHERE product_id = ?
-            ");
-            $stockCheck->execute([$productId]);
-            $stock = (int)$stockCheck->fetchColumn();
+    // current stock (same as you had)
+    $stockCheck = $pdo->prepare("
+        SELECT COALESCE(SUM(CASE WHEN type='in' THEN quantity ELSE -quantity END),0)
+        FROM inventories WHERE product_id = ?
+    ");
+    $stockCheck->execute([$productId]);
+    $stock = (int)$stockCheck->fetchColumn();
 
-            if ($qty > $stock) {
-                throw new Exception("Insufficient stock for product ID $productId");
-            }
+    if ($qty > $stock) {
+        throw new Exception("Insufficient stock for product ID $productId");
+    }
 
-            // sale_items
-            $stmt = $pdo->prepare("
-                INSERT INTO sale_items (sale_id, product_id, quantity, unit_price)
-                VALUES (?, ?, ?, ?)
-            ");
-            $stmt->execute([$saleId, $productId, $qty, $price]);
+    /* --- NEW: snapshot COGS for this line item --- */
+    $getCost->execute([$productId]);
+    $p = $getCost->fetch(PDO::FETCH_ASSOC) ?: ['avg_cost'=>0,'last_cost'=>0];
+    $costUnit  = ($p['avg_cost'] ?? 0) > 0 ? (float)$p['avg_cost'] : (float)($p['last_cost'] ?? 0);
+    $costTotal = $costUnit * $qty;
 
-            // inventory OUT with stock_after
-            $newStock = $stock - $qty;
-            $invStmt = $pdo->prepare("
-                INSERT INTO inventories (product_id, quantity, type, note, stock_after)
-                VALUES (?, ?, 'out', ?, ?)
-            ");
-            $note = "Sale ID $saleId";
-            $invStmt->execute([$productId, $qty, $note, $newStock]);
+    // sale_items (now includes cogs_unit + cogs_total)
+    $stmt = $pdo->prepare("
+        INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, cogs_unit, cogs_total)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ");
+    $stmt->execute([$saleId, $productId, $qty, $price, $costUnit, $costTotal]);
 
-            // Low stock alert
-            $remainingStockStmt = $pdo->prepare("
-                SELECT COALESCE(SUM(CASE WHEN type='in' THEN quantity ELSE -quantity END),0)
-                FROM inventories WHERE product_id = ?
-            ");
-            $remainingStockStmt->execute([$productId]);
-            $remainingStock = (int)$remainingStockStmt->fetchColumn();
+    // inventory OUT with stock_after + source tracking (if you created those columns)
+    $newStock = $stock - $qty;
+    $invStmt = $pdo->prepare("
+        INSERT INTO inventories (product_id, quantity, type, note, stock_after, source_type, source_id)
+        VALUES (?, ?, 'out', ?, ?, 'sale', ?)
+    ");
+    $note = "Sale ID $saleId";
+    $invStmt->execute([$productId, $qty, $note, $newStock, $saleId]);
 
-            $productInfo = $pdo->prepare("SELECT name, stock_alert_threshold FROM products WHERE id = ?");
-            $productInfo->execute([$productId]);
-            $info = $productInfo->fetch(PDO::FETCH_ASSOC) ?: ['name' => 'Product', 'stock_alert_threshold' => 2];
-            $threshold = ($info['stock_alert_threshold'] !== null) ? (int)$info['stock_alert_threshold'] : 2;
+    // Low stock alert (unchanged)
+    $remainingStockStmt = $pdo->prepare("
+        SELECT COALESCE(SUM(CASE WHEN type='in' THEN quantity ELSE -quantity END),0)
+        FROM inventories WHERE product_id = ?
+    ");
+    $remainingStockStmt->execute([$productId]);
+    $remainingStock = (int)$remainingStockStmt->fetchColumn();
 
-            if ($remainingStock <= $threshold) {
-                $alerts[] = "{$info['name']} stock is low ({$remainingStock} left)";
-            }
-        }
+    $productInfo = $pdo->prepare("SELECT name, stock_alert_threshold FROM products WHERE id = ?");
+    $productInfo->execute([$productId]);
+    $info = $productInfo->fetch(PDO::FETCH_ASSOC) ?: ['name' => 'Product', 'stock_alert_threshold' => 2];
+    $threshold = ($info['stock_alert_threshold'] !== null) ? (int)$info['stock_alert_threshold'] : 2;
+
+    if ($remainingStock <= $threshold) {
+        $alerts[] = "{$info['name']} stock is low ({$remainingStock} left)";
+    }
+}
+
 
         // 3) Discount
         $discountAmount = 0.0;

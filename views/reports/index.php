@@ -76,6 +76,16 @@ $monthStart = date('Y-m-01');
         <option value="drawer">View: Cash Drawer</option>
     </select>
 
+
+      <!-- ✅ NEW: Inventory-only extra filters -->
+  <input type="search" id="invQ" placeholder="Search SKU/Name" style="min-width:220px">
+  <select id="invCat"><option value="">All Categories</option></select>
+  <label title="Show zero stock items too">
+    <input type="checkbox" id="invZero"> Include zero stock
+  </label>
+  <label>Min On-hand <input type="number" id="invMin" min="0" value="0" style="width:90px"></label>
+  <!-- ✅ END NEW -->
+
     <button class="rp-run" id="rpRun">Run</button>
     <button class="rp-run" id="rpExport">Export CSV</button>
   </div>
@@ -117,12 +127,21 @@ function fmt(n){ n = Number(n||0); return 'UGX ' + n.toLocaleString(undefined,{m
 function csv(url){ const a=document.createElement('a'); a.href=url; a.click(); }
 
 function params(){
-  return new URLSearchParams({
-    from: $('#rpFrom').value,
-    to:   $('#rpTo').value,
+  const base = new URLSearchParams({
+    from:  $('#rpFrom').value,
+    to:    $('#rpTo').value,
     group: $('#rpGroup').value
-  }).toString();
+  });
+  if ($('#rpTab').value === 'inventory') {
+    if ($('#invQ')?.value)      base.set('q', $('#invQ').value);
+    if ($('#invCat')?.value)    base.set('category_id', $('#invCat').value);
+    if ($('#invZero')?.checked) base.set('include_zero', '1');
+    const min = $('#invMin')?.value;
+    if (min && Number(min) >= 0) base.set('min_on_hand', String(Number(min)));
+  }
+  return base.toString();
 }
+
 
 async function runSales(){
   // 1) Trend
@@ -174,80 +193,117 @@ async function runSales(){
 }
 
 async function runInventory(){
-  // KPIs: total stock value
-  const val = await fetch('/POS_UG/controllers/reportsController.php?action=stock_valuation').then(r=>r.json());
-  $('#kpiTotal').textContent = fmt(val.total_value||0);
-  $('#kpiOrders').textContent = '—';
+  // 1) Valuation (respects filters)
+  const val = await fetch('/POS_UG/controllers/reportsController.php?action=stock_valuation&'+params()).then(r=>r.json());
+  const rows = (val.rows||[]);
+  const totalValue = Number(val.total_value||0);
+  const totalUnits = Number(val.total_units||0);
+
+  // KPIs
+  $('#kpiTotal').textContent = fmt(totalValue);
+  $('#kpiOrders').textContent = totalUnits.toLocaleString(); // show total units
   $('#kpiAOV').textContent = '—';
   $('#kpiTax').textContent = '—';
 
-  // Chart: top values
-  const rows = (val.rows||[]).slice(0,15);
+  // 2) Chart: Top 15 by value (bar)
+  const top = rows.slice(0, 15);
   if (chartLine) chartLine.destroy();
   chartLine = new Chart($('#rpChart'), {
     type:'bar',
-    data:{ labels: rows.map(r=>r.name), datasets:[{ label:'Value', data: rows.map(r=>r.value) }] }
+    data:{ labels: top.map(r=>r.name),
+      datasets:[{ label:'Stock Value', data: top.map(r=>Number(r.value||0)) }]
+    }
   });
-  $('#chartTitle').textContent='Stock Valuation (Top)';
+  $('#chartTitle').textContent='Top Products by Stock Value';
 
-  // Breakdown: reorder alerts count vs ok
-  const re = await fetch('/POS_UG/controllers/reportsController.php?action=reorder_alerts').then(r=>r.json());
-  const alerts = (re.rows||[]).length;
-  const ok = Math.max(0, (val.rows||[]).length - alerts);
+  // 3) Breakdown: category share (doughnut)
+  const cats = (val.category_summary||[]);
   if (chartPie) chartPie.destroy();
   chartPie = new Chart($('#rpBreakdown'), {
     type:'doughnut',
-    data:{ labels:['OK','Needs Reorder'], datasets:[{ data:[ok, alerts] }] }
+    data:{
+      labels: cats.map(c=>c.category||'Uncategorized'),
+      datasets:[{ data: cats.map(c=>Number(c.value||0)) }]
+    }
   });
 
-  // Table: low stock list
-  $('#rpHead').innerHTML = '<th>SKU</th><th>Product</th><th class="rp-right">On Hand</th><th class="rp-right">Threshold</th>';
-  $('#rpBody').innerHTML = (re.rows||[]).map(r=>`
-    <tr><td>${r.sku||''}</td><td>${r.name}</td><td class="rp-right">${r.on_hand}</td><td class="rp-right">${r.stock_alert_threshold||0}</td></tr>
-  `).join('') || '<tr><td>No alerts</td></tr>';
+  // 4) Table: detailed valuation (first 50 for speed)
+  $('#rpHead').innerHTML = '<th>SKU</th><th>Product</th><th>Category</th><th class="rp-right">On Hand</th><th class="rp-right">Cost</th><th class="rp-right">Value</th>';
+  $('#rpBody').innerHTML = rows.slice(0,50).map(r=>`
+    <tr>
+      <td>${r.sku||''}</td>
+      <td>${r.name||''}</td>
+      <td>${r.category||'—'}</td>
+      <td class="rp-right">${Number(r.on_hand||0).toLocaleString()}</td>
+      <td class="rp-right">${fmt(r.cost_basis_used||0)}</td>
+      <td class="rp-right">${fmt(r.value||0)}</td>
+    </tr>
+  `).join('') || '<tr><td>No data</td></tr>';
 
+  // 5) Hook Export for valuation
   $('#rpExport').onclick = () => {
-    csv('/POS_UG/controllers/reportsController.php?action=reorder_alerts&export=csv');
+    csv('/POS_UG/controllers/reportsController.php?action=stock_valuation&'+params()+'&export=csv');
   };
 }
 
+
 async function runFinancial(){
-  const p = await fetch('/POS_UG/controllers/reportsController.php?action=profitability&'+params()).then(r=>r.json());
+  // P&L summary
+  const p = await fetch('/POS_UG/controllers/reportsController.php?action=profit_and_loss&'+params()).then(r=>r.json());
+
+  // KPIs
   $('#kpiTotal').textContent = fmt(p.revenue||0);
   $('#kpiOrders').textContent = '—';
-  $('#kpiAOV').textContent    = fmt((p.revenue||0)-(p.gross_profit||0)); // shows COGS quickly
-  $('#kpiTax').textContent    = fmt(p.gross_profit||0);
+  $('#kpiAOV').textContent    = fmt(p.net_profit || 0);  // show Net Profit here
+  $('#kpiTax').textContent    = fmt(p.tax_total || 0);
 
-  // Chart: revenue vs cogs
+  // Per-period P&L for chart
+  const per = await fetch('/POS_UG/controllers/reportsController.php?action=pl_by_period&'+params()).then(r=>r.json());
+  const rows = per.rows||[];
+  const labels = rows.map(r=>r.bucket);
+  const rev    = rows.map(r=>Number(r.revenue||0));
+  const cogs   = rows.map(r=>Number(r.cogs||0));
+  const margin = rows.map(r=>Number(r.margin_pct||0));
+
   if (chartLine) chartLine.destroy();
   chartLine = new Chart($('#rpChart'), {
     type:'bar',
-    data:{ labels:['Revenue','COGS','Gross Profit'],
-           datasets:[{ label:'Amount', data:[p.revenue||0, p.cogs||0, p.gross_profit||0] }] }
+    data:{
+      labels,
+      datasets:[
+        { label:'Revenue', data: rev, order:1 },
+        { label:'COGS',    data: cogs, order:1 },
+        { label:'Gross Margin %', type:'line', data: margin, yAxisID:'y2', order:0, tension:.25 }
+      ]
+    },
+    options:{
+      scales:{
+        y:  { beginAtZero:true, title:{display:true,text:'Amount (UGX)'} },
+        y2: { beginAtZero:true, position:'right', title:{display:true,text:'Margin %'} }
+      }
+    }
   });
-  $('#chartTitle').textContent='Revenue vs COGS';
+  $('#chartTitle').textContent='Revenue, COGS & Gross Margin';
 
-  // Breakdown: tax by day
-  const tx = await fetch('/POS_UG/controllers/reportsController.php?action=tax_summary&'+params()).then(r=>r.json());
-  const rows = tx.rows||[];
-  if (chartPie) chartPie.destroy();
-  chartPie = new Chart($('#rpBreakdown'), {
-    type:'line',
-    data:{ labels: rows.map(r=>r.d), datasets:[{ label:'Tax', data: rows.map(r=>r.tax) }] }
-  });
-
-  // Table: discounts & returns
-  const dr = await fetch('/POS_UG/controllers/reportsController.php?action=discounts_returns&'+params()).then(r=>r.json());
+  // Table: P&L summary + discounts/returns
   $('#rpHead').innerHTML = '<th>Metric</th><th class="rp-right">Amount</th>';
   $('#rpBody').innerHTML = `
-    <tr><td>Discount Total</td><td class="rp-right">${fmt(dr.discount_total||0)}</td></tr>
-    <tr><td>Returned Qty</td><td class="rp-right">${(dr.returns_qty||0).toLocaleString()}</td></tr>
+    <tr><td>Revenue</td><td class="rp-right">${fmt(p.revenue||0)}</td></tr>
+    <tr><td>COGS</td><td class="rp-right">${fmt(p.cogs||0)}</td></tr>
+    <tr><td><strong>Gross Profit</strong></td><td class="rp-right"><strong>${fmt(p.gross_profit||0)}</strong></td></tr>
+    <tr><td>Operating Expenses</td><td class="rp-right">${fmt(p.operating_expenses||0)}</td></tr>
+    <tr><td><strong>Net Profit</strong></td><td class="rp-right"><strong>${fmt(p.net_profit||0)}</strong></td></tr>
+    <tr><td>Tax Collected</td><td class="rp-right">${fmt(p.tax_total||0)}</td></tr>
+    <tr><td>Discount Total</td><td class="rp-right">${fmt(p.discount_total||0)}</td></tr>
+    <tr><td>Returned Quantity</td><td class="rp-right">${(p.returns_qty||0).toLocaleString()}</td></tr>
   `;
 
+  // Export the summary CSV
   $('#rpExport').onclick = () => {
-    csv('/POS_UG/controllers/reportsController.php?action=tax_summary&'+params()+'&export=csv');
+    csv('/POS_UG/controllers/reportsController.php?action=profit_and_loss&'+params()+'&export=csv');
   };
 }
+
 
 async function runStaff(){
   const sh = await fetch('/POS_UG/controllers/reportsController.php?action=shift_report&'+params()).then(r=>r.json());
@@ -402,6 +458,15 @@ async function run(){
   else if (tab==='customers') await runCustomers();
   else if (tab==='drawer') await runDrawer();
 }
+async function loadCategories(){
+  const r = await fetch('/POS_UG/controllers/reportsController.php?action=categories').then(x=>x.json());
+  const sel = $('#invCat');
+  if (!sel || !r?.rows) return;
+  sel.innerHTML = '<option value="">All Categories</option>' +
+    r.rows.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+}
+// run once on load
+loadCategories();
 
 
 </script>

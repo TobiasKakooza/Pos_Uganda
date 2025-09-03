@@ -9,11 +9,9 @@ $view = $_GET['view'] ?? '';
 $routes = [
   'suppliers/list' => __DIR__ . '/suppliers/list.php',
   'reports'        => __DIR__ . '/reports/index.php',
-<<<<<<< HEAD
   'reports/stock'  => __DIR__ . '/reports/stock_levels.php',
    'reports/valuation'=> __DIR__ . '/reports/stock_valuation.php',
-=======
->>>>>>> 9f01ee8fe0c0f04f953f7174d298f771c9bc24ea
+
 ];
 $embedHtml = null;
 if ($view && isset($routes[$view])) {
