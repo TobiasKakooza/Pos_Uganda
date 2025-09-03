@@ -276,6 +276,7 @@ try {
 
     /* ---------- INVENTORY ---------- */
     case 'stock_levels': {
+<<<<<<< HEAD
   $q     = trim($_GET['q'] ?? '');
   $catId = (int)($_GET['category_id'] ?? 0);
   $only  = $_GET['only'] ?? ''; // '', 'low', 'out'
@@ -329,6 +330,20 @@ try {
   break;
 }
 
+=======
+      $sql="
+        SELECT p.id, p.name, p.sku, p.stock_alert_threshold,
+               COALESCE(SUM(CASE WHEN i.type='in'  THEN i.quantity ELSE 0 END),0)
+               - COALESCE(SUM(CASE WHEN i.type='out' THEN i.quantity ELSE 0 END),0) AS on_hand
+        FROM products p
+        LEFT JOIN inventories i ON i.product_id=p.id
+        GROUP BY p.id, p.name, p.sku, p.stock_alert_threshold
+        ORDER BY on_hand ASC";
+      $rows=$pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+      echo json_encode(['success'=>true,'rows'=>$rows]);
+      break;
+    }
+>>>>>>> 9f01ee8fe0c0f04f953f7174d298f771c9bc24ea
 
     case 'stock_valuation': {
       $sql="
@@ -561,12 +576,15 @@ try {
           echo json_encode(['success'=>true,'rows'=>$data]);
           break;
         }
+<<<<<<< HEAD
         case 'categories': {
   $rows = $pdo->query("SELECT id, name FROM categories ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
   echo json_encode(['success'=>true,'rows'=>$rows]);
   break;
 }
 
+=======
+>>>>>>> 9f01ee8fe0c0f04f953f7174d298f771c9bc24ea
 
     default:
       echo json_encode(['success'=>false,'message'=>'Unknown action']);
