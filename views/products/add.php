@@ -2,44 +2,155 @@
 require_once('../../config/db.php');
 
 // Fetch categories and units
-$categories = $pdo->query("SELECT * FROM categories")->fetchAll();
-$units = $pdo->query("SELECT * FROM units")->fetchAll();
+$categories = $pdo->query("SELECT * FROM categories ORDER BY name ASC")->fetchAll();
+$units      = $pdo->query("SELECT * FROM units ORDER BY name ASC")->fetchAll();
 ?>
 
-<!-- Close button to hide the side panel -->
-<button class="close-btn" onclick="hidePanel()">✖</button>
+<!-- Close button -->
+<button class="close-btn" onclick="hidePanel()">
+    <i data-lucide="x"></i>
+</button>
 
-<h2>➕ Add Product</h2>
+<h2>
+    <i data-lucide="package-plus"></i>
+    Add Product
+</h2>
 
 <form method="POST" action="../../controllers/productController.php">
-    <input type="text" name="name" placeholder="Product Name" required>
-    <input type="text" name="sku" placeholder="SKU" required>
-    <input type="text" name="barcode" placeholder="Barcode">
 
-    <input type="number" name="price" placeholder="Price (UGX)" step="0.01" required>
-    <input type="number" name="tax_rate" placeholder="Tax Rate (%)" step="0.01">
+    <!-- Product Name -->
+    <div class="form-group">
+        <label>
+            <i data-lucide="tag"></i> Product Name
+        </label>
+        <input type="text" name="name" required>
+    </div>
 
-    <!-- Stock Alert Threshold -->
-    <input type="number" name="stock_alert_threshold" placeholder="Stock Alert Threshold" min="0" value="2" required>
+    <!-- SKU -->
+    <div class="form-group">
+        <label>
+            <i data-lucide="barcode"></i> SKU
+        </label>
+        <input type="text" name="sku" required>
+    </div>
 
-    <!-- Initial Quantity (for inventory) -->
-    <input type="number" name="initial_stock" placeholder="Initial Stock Quantity" min="0" required>
+    <!-- Barcode -->
+    <div class="form-group">
+        <label>
+            <i data-lucide="qr-code"></i> Barcode
+        </label>
+        <input type="text" name="barcode">
+    </div>
 
-    <!-- Unit selection -->
-    <select name="unit_id" required>
-        <option value="">Select Unit</option>
-        <?php foreach ($units as $unit): ?>
-            <option value="<?= $unit['id'] ?>"><?= htmlspecialchars($unit['name']) ?></option>
-        <?php endforeach; ?>
-    </select>
+    <!-- Buying Price -->
+    <div class="form-group">
+        <label>
+            <i data-lucide="shopping-cart"></i> Buying Price (UGX)
+        </label>
+        <input
+            type="number"
+            name="cost_price"
+            step="0.01"
+            min="0"
+            required
+        >
+    </div>
 
-    <!-- Category selection -->
-    <select name="category_id" required>
-        <option value="">Select Category</option>
-        <?php foreach ($categories as $cat): ?>
-            <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
-        <?php endforeach; ?>
-    </select>
+    <!-- Selling Price -->
+    <div class="form-group">
+        <label>
+            <i data-lucide="banknote"></i> Selling Price (UGX)
+        </label>
+        <input
+            type="number"
+            name="price"
+            step="0.01"
+            min="0"
+            required
+        >
+    </div>
 
-    <button type="submit" name="add_product">💾 Save Product</button>
+    <!-- Tax Rate -->
+    <div class="form-group">
+        <label>
+            <i data-lucide="percent"></i> Tax Rate (%)
+        </label>
+        <input
+            type="number"
+            name="tax_rate"
+            step="0.01"
+            min="0"
+        >
+    </div>
+
+    <!-- Stock Alert -->
+    <div class="form-group">
+        <label>
+            <i data-lucide="alert-triangle"></i> Stock Alert Threshold
+        </label>
+        <input
+            type="number"
+            name="stock_alert_threshold"
+            min="0"
+            value="2"
+            required
+        >
+    </div>
+
+    <!-- Initial Stock -->
+    <div class="form-group">
+        <label>
+            <i data-lucide="warehouse"></i> Initial Stock Quantity
+        </label>
+        <input
+            type="number"
+            name="initial_stock"
+            min="0"
+            required
+        >
+    </div>
+
+    <!-- Unit -->
+    <div class="form-group">
+        <label>
+            <i data-lucide="ruler"></i> Unit
+        </label>
+        <select name="unit_id" required>
+            <option value="">Select Unit</option>
+            <?php foreach ($units as $unit): ?>
+                <option value="<?= $unit['id'] ?>">
+                    <?= htmlspecialchars($unit['name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <!-- Category -->
+    <div class="form-group">
+        <label>
+            <i data-lucide="folder"></i> Category
+        </label>
+        <select name="category_id" required>
+            <option value="">Select Category</option>
+            <?php foreach ($categories as $cat): ?>
+                <option value="<?= $cat['id'] ?>">
+                    <?= htmlspecialchars($cat['name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <!-- Submit -->
+    <button type="submit" name="add_product" class="btn-primary">
+        <i data-lucide="save"></i>
+        Save Product
+    </button>
+
 </form>
+
+<script>
+  // Make sure Lucide renders the icons
+  if (window.lucide) {
+      lucide.createIcons();
+  }
+</script>

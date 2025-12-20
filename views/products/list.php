@@ -24,13 +24,25 @@ $total = $countStmt->fetchColumn();
 $totalPages = ceil($total / $limit);
 
 $stmt = $pdo->prepare("
-    SELECT p.*, c.name AS category
+    SELECT 
+        p.id,
+        p.name,
+        p.sku,
+        p.barcode,
+        p.price,
+        p.avg_cost,
+        p.tax_rate,
+        p.stock_alert_threshold,
+        c.name AS category,
+        u.name AS unit
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
+    LEFT JOIN units u ON p.unit_id = u.id
     $searchQuery
     ORDER BY p.created_at DESC
     LIMIT $limit OFFSET $offset
 ");
+
 $stmt->execute($params);
 $products = $stmt->fetchAll();
 ?>
@@ -54,12 +66,27 @@ $products = $stmt->fetchAll();
 <?php endif; ?>
 
 
- <div class="topbar">
-  <button onclick="loadPanel('add')">➕ New Product</button>
-  <button onclick="loadPanel('edit')" disabled id="editBtn">✏️ Edit Product</button>
-  <button onclick="deleteSelected()" disabled id="deleteBtn">🗑️ Delete Product</button>
-  <button onclick="loadCategoryPanel()">📁 Manage Categories</button>
-  
+<div class="topbar">
+
+  <button onclick="loadPanel('add')">
+    <i data-lucide="plus-circle"></i>
+    New Product
+  </button>
+
+  <button onclick="loadPanel('edit')" disabled id="editBtn">
+    <i data-lucide="edit-3"></i>
+    Edit Product
+  </button>
+
+  <button onclick="deleteSelected()" disabled id="deleteBtn">
+    <i data-lucide="trash-2"></i>
+    Delete Product
+  </button>
+
+  <button onclick="loadCategoryPanel()">
+    <i data-lucide="folder-tree"></i>
+    Manage Categories
+  </button>
   <!-- 📁 Category Manager Panel
 <div id="panel-right" class="side-panel hidden">
   <div class="category-box">
@@ -312,48 +339,128 @@ function deleteCategory(id) {
 }
 </style>
 
- <input 
-  type="text" 
-  id="searchInput" 
-  placeholder="Search..." 
-  value="<?= htmlspecialchars($search) ?>" 
-  onkeydown="if(event.key === 'Enter'){ searchProducts(this.value); }" 
-  style="padding:8px; border-radius:4px; margin-left:auto;">
+<input
+  type="text"
+  id="searchInput"
+  placeholder="Search products…"
+  autocomplete="off"
+  style="padding:8px;border-radius:4px;margin-left:auto;min-width:220px"
+>
+
 
 </div>
 
 
-  <div id="panel-right" class="side-panel hidden"></div>
+<div id="panel-right" class="side-panel hidden"></div>
 
-  <div class="main-table">
-    <h2>🛒 Product List</h2>
-    <table border="1" cellpadding="10" id="productsTable">
-      <thead>
+<div class="main-table">
+
+  <h2 style="display:flex;align-items:center;gap:8px">
+    <i data-lucide="shopping-cart"></i>
+    Product List
+  </h2>
+
+  <table id="productsTable">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Product</th>
+        <th>SKU</th>
+        <th>Cost</th>
+        <th>Price</th>
+        <th>Tax</th>
+        <th>Unit</th>
+        <th>Category</th>
+        <th>Alert</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <?php foreach ($products as $product): ?>
         <tr>
-          <th></th>
-          <th>Name</th><th>SKU</th><th>Barcode</th><th>Price</th><th>Tax</th><th>Category</th>
+
+          <!-- Select -->
+          <td>
+            <input type="radio"
+                   name="selected"
+                   value="<?= $product['id'] ?>"
+                   onclick="enableActions(this.value)">
+          </td>
+
+          <!-- Product Name + Barcode -->
+          <td>
+            <strong><?= htmlspecialchars($product['name']) ?></strong><br>
+            <small style="color:#607d8b">
+              <i data-lucide="barcode"></i>
+              <?= htmlspecialchars($product['barcode'] ?? '—') ?>
+            </small>
+          </td>
+
+          <!-- SKU -->
+          <td>
+            <i data-lucide="tag"></i>
+            <?= htmlspecialchars($product['sku']) ?>
+          </td>
+
+          <!-- Cost -->
+          <td>
+            UGX <?= number_format($product['avg_cost'], 2) ?>
+          </td>
+
+          <!-- Selling Price -->
+          <td>
+            <strong>
+              UGX <?= number_format($product['price'], 2) ?>
+            </strong>
+          </td>
+
+          <!-- Tax -->
+          <td>
+            <i data-lucide="percent"></i>
+            <?= $product['tax_rate'] ?>%
+          </td>
+
+          <!-- Unit -->
+          <td>
+            <i data-lucide="box"></i>
+            <?= $product['unit'] ?? '—' ?>
+          </td>
+
+          <!-- Category -->
+          <td>
+            <i data-lucide="folder"></i>
+            <?= $product['category'] ?? 'None' ?>
+          </td>
+
+          <!-- Stock Alert -->
+          <td>
+            <i data-lucide="alert-triangle"></i>
+            <?= (int)$product['stock_alert_threshold'] ?>
+          </td>
+
         </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($products as $product): ?>
-          <tr>
-            <td><input type="radio" name="selected" value="<?= $product['id'] ?>" onclick="enableActions(this.value)"></td>
-            <td><?= htmlspecialchars($product['name']) ?></td>
-            <td><?= $product['sku'] ?></td>
-            <td><?= $product['barcode'] ?></td>
-            <td>UGX <?= number_format($product['price'], 2) ?></td>
-            <td><?= $product['tax_rate'] ?>%</td>
-            <td><?= $product['category'] ?? 'None' ?></td>
-          </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
-    <p>Page <?= $page ?> of <?= $totalPages ?></p>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <div style="margin-top:14px">
+    <small>Page <?= $page ?> of <?= $totalPages ?></small><br>
     <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-      <a href="?page=<?= $i ?>&search=<?= urlencode($search) ?>" <?= $i == $page ? 'style="font-weight:bold;"' : '' ?>><?= $i ?></a>
+      <a href="?page=<?= $i ?>&search=<?= urlencode($search) ?>"
+         <?= $i == $page ? 'style="font-weight:bold;"' : '' ?>>
+        <?= $i ?>
+      </a>
     <?php endfor; ?>
   </div>
+
 </div>
+
+<script>
+  // Re-render lucide icons after dynamic content
+  lucide.createIcons();
+</script>
+
 <!-- Inside your <script> tag -->
 <script>
 function enableActions(id) {
@@ -401,6 +508,16 @@ function hidePanel() {
   panel.innerHTML = '';
   document.body.style.overflow = 'auto';
 }
+
+document.getElementById('searchInput').addEventListener('input', function () {
+  const query = this.value.toLowerCase().trim();
+  const rows = document.querySelectorAll('#productsTable tbody tr');
+
+  rows.forEach(row => {
+    const text = row.innerText.toLowerCase();
+    row.style.display = text.includes(query) ? '' : 'none';
+  });
+});
 </script>
 
 
@@ -615,6 +732,7 @@ body {
   cursor: pointer;
   color: inherit;
 }
+
 
 </style>
 

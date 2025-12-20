@@ -1,6 +1,22 @@
 <?php
 // views/dashboard.php
 include('../includes/auth.php');
+
+$roleId = $_SESSION['role_id'] ?? null;
+
+// CASHIER SHOULD NOT ACCESS ADMIN DASHBOARD
+if ($roleId === 2) {
+    header('Location: /POS_UG/views/Cashier/index.php');
+    exit;
+}
+
+// INVENTORY MANAGER REDIRECT
+if ($roleId === 3) {
+    header('Location: /POS_UG/views/InventoryManager/index.php');
+    exit;
+}
+
+
 include('../includes/header.php');
 include('../includes/navbar.php');
 
@@ -24,52 +40,251 @@ $user = $_SESSION['user'] ?? ['name'=>'User'];
 ?>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.css"/>
 <style>
-  :root{
-    --bg:#f4f6f9; --card:#ffffff; --line:#e5e7eb; --mut:#6b7280; --title:#111827; --brand:#1976d2;
+ /* =====================================================
+   LIGHT DASHBOARD (BLENDS WITH DARK HEADER & SIDEBAR)
+===================================================== */
+
+:root{
+  /* Light canvas */
+  --bg: #f4f6f9;
+  --card: #ffffff;
+
+  /* Borders & separators */
+  --line: #e5e7eb;
+
+  /* Text */
+  --title: #111827;
+  --mut: #6b7280;
+
+  /* Brand */
+  --brand: #3b82f6;
+
+  /* Soft shadow */
+  --shadow: 0 10px 24px rgba(0,0,0,.06);
+}
+
+/* ===== PAGE BACKGROUND ===== */
+body {
+  background: var(--bg);
+}
+
+/* ===== MAIN CONTENT WRAPPER ===== */
+.container {
+  padding: 24px;
+}
+
+/* ===== TITLE ===== */
+.dash-title {
+  font-size: 22px;
+  margin: 0 0 12px;
+  color: var(--title);
+  font-weight: 600;
+}
+
+/* ===== QUICK ACTIONS ===== */
+.quick {
+  display: flex;
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 6px 14px rgba(59,130,246,.25);
+}
+
+.btn:hover {
+  filter: brightness(.95);
+}
+
+.btn.ghost {
+  background: #111827;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(0,0,0,.25);
+}
+
+/* ===== KPI GRID ===== */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 14px;
+  margin: 8px 0 20px;
+}
+
+.kpi {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.kpi small {
+  color: var(--mut);
+  font-size: 13px;
+  display: block;
+}
+
+.kpi h2 {
+  margin: 10px 0 0;
+  font-size: 22px;
+  color: var(--title);
+  font-weight: 600;
+}
+
+/* ===== PANELS ===== */
+.panels {
+  display: grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap: 14px;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.panel h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: var(--title);
+  font-weight: 600;
+}
+
+/* ===== TABLES ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border-top: 1px solid var(--line);
+}
+
+th {
+  background: #f9fafb;
+  color: var(--mut);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+
+td {
+  color: var(--title);
+  font-size: 14px;
+}
+
+.right {
+  text-align: right;
+}
+
+/* ===== GRID BELOW ===== */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1100px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
   }
-  body{background:var(--bg)}
-  .container{margin-left:240px;padding:24px}
-  .dash-title{font-size:22px;margin:0 0 12px;color:var(--title)}
-  .kpis{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:12px;margin:8px 0 16px}
-  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
-  .kpi small{color:var(--mut);display:block}
-  .kpi h2{margin:8px 0 0;font-size:22px}
-  .panels{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
-  .panel h3{margin:0 0 10px;font-size:16px}
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-  table{width:100%;border-collapse:collapse}
-  th,td{padding:10px;border-top:1px solid var(--line)}
-  th{background:#f3f4f6;text-align:left}
-  .right{text-align:right}
-  .quick{display:flex;gap:8px;margin:14px 0 4px}
-  .btn{background:var(--brand);color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-block}
-  .btn.ghost{background:#374151}
-  @media (max-width:1100px){ .kpis{grid-template-columns:repeat(2,minmax(220px,1fr))} .panels{grid-template-columns:1fr} }
+
+  .panels {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dash-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dash-title i {
+  width: 22px;
+  height: 22px;
+  color: #3b82f6; /* brand blue */
+  stroke-width: 2;
+}
+
 </style>
 
 <div class="container">
   <?php if ($embedHtml !== null): ?>
     <?= $embedHtml ?>
   <?php else: ?>
-    <h1 class="dash-title">👋 Welcome back, <?= htmlspecialchars($user['name']) ?></h1>
-    <div class="quick">
-      <a class="btn" href="/POS_UG/views/sales/terminal.php">Open Sales Terminal</a>
-      <a class="btn ghost" href="/POS_UG/views/dashboard.php?view=reports">View Reports</a>
-      <a class="btn ghost" href="/POS_UG/views/products/list.php">Manage Products</a>
-    </div>
+<h1 class="dash-title">
+  <i data-lucide="sparkles"></i>
+  Welcome back, <?= htmlspecialchars($user['name']) ?>
+</h1>
 
-    <!-- KPIs -->
-    <div class="kpis" id="kpiRow">
-      <div class="kpi"><small>Today Sales</small><h2 id="kpiToday">UGX 0</h2></div>
-      <div class="kpi"><small>Today Orders</small><h2 id="kpiTodayOrders">0</h2></div>
-      <div class="kpi"><small>MTD Sales</small><h2 id="kpiMTD">UGX 0</h2></div>
-      <div class="kpi"><small>Products / Customers</small><h2 id="kpiCounts">0 / 0</h2></div>
-      <div class="kpi"><small>Low-Stock Alerts</small><h2 id="kpiLow">0</h2></div>
-      <div class="kpi"><small>Suppliers</small><h2 id="kpiSup">0</h2></div>
-      <div class="kpi"><small>Receivables</small><h2 id="kpiAR">UGX 0</h2></div>
-      <div class="kpi"><small>Payables</small><h2 id="kpiAP">UGX 0</h2></div>
-    </div>
+  <div class="quick">
+  <?php if (can('sales_access')): ?>
+    <a class="btn" href="/POS_UG/views/sales/terminal.php">Open Sales Terminal</a>
+  <?php endif; ?>
+
+  <?php if (can('reports_view')): ?>
+    <a class="btn ghost" href="/POS_UG/views/dashboard.php?view=reports">View Reports</a>
+  <?php endif; ?>
+
+  <?php if (can('products_manage')): ?>
+    <a class="btn ghost" href="/POS_UG/views/products/list.php">Manage Products</a>
+  <?php endif; ?>
+</div>
+
+
+<!-- KPIs -->
+<div class="kpis" id="kpiRow">
+
+  <!-- 📦 INVENTORY SUMMARY -->
+  <div class="kpi">
+    <small>Total Products</small>
+    <h2 id="kpiInvProducts">0</h2>
+  </div>
+
+  <div class="kpi">
+    <small>Units in Stock</small>
+    <h2 id="kpiInvUnits">0</h2>
+  </div>
+
+  <div class="kpi">
+    <small>Inventory Cost Value</small>
+    <h2 id="kpiInvCost">UGX 0</h2>
+  </div>
+
+  <div class="kpi">
+    <small>Inventory Selling Value</small>
+    <h2 id="kpiInvSell">UGX 0</h2>
+  </div>
+
+  <!-- 📊 SALES & OPERATIONS -->
+  <div class="kpi"><small>Today Sales</small><h2 id="kpiToday">UGX 0</h2></div>
+  <div class="kpi"><small>Today Orders</small><h2 id="kpiTodayOrders">0</h2></div>
+  <div class="kpi"><small>MTD Sales</small><h2 id="kpiMTD">UGX 0</h2></div>
+  <div class="kpi"><small>Products / Customers</small><h2 id="kpiCounts">0 / 0</h2></div>
+  <div class="kpi"><small>Low-Stock Alerts</small><h2 id="kpiLow">0</h2></div>
+  <div class="kpi"><small>Suppliers</small><h2 id="kpiSup">0</h2></div>
+  <div class="kpi"><small>Receivables</small><h2 id="kpiAR">UGX 0</h2></div>
+  <div class="kpi"><small>Payables</small><h2 id="kpiAP">UGX 0</h2></div>
+
+</div>
+
 
     <!-- Charts -->
     <div class="panels">
@@ -112,6 +327,27 @@ $user = $_SESSION['user'] ?? ['name'=>'User'];
 <script>
 const $ = s => document.querySelector(s);
 const fmtUGX = n => 'UGX ' + Number(n||0).toLocaleString();
+
+async function loadInventorySummary(){
+  const r = await fetch(
+    '/POS_UG/controllers/reportsController.php?action=inventory_summary'
+  ).then(x => x.json());
+
+  if (!r.success) return;
+
+  $('#kpiInvProducts').textContent =
+    (r.total_products || 0).toLocaleString();
+
+  $('#kpiInvUnits').textContent =
+    (r.total_units || 0).toLocaleString();
+
+  $('#kpiInvCost').textContent =
+    fmtUGX(r.total_cost_value);
+
+  $('#kpiInvSell').textContent =
+    fmtUGX(r.total_selling_value);
+}
+
 
 let chartTrend, chartCat;
 
@@ -177,6 +413,18 @@ async function loadLowStock(){
 }
 
 (async function init(){
-  await Promise.all([loadKPIs(), loadTrend(), loadCategory(), loadTopProducts(), loadRecentSales(), loadLowStock()]);
+  await Promise.all([
+    loadInventorySummary(), // ✅ NEW (BUSINESS WORTH)
+    loadKPIs(),
+    loadTrend(),
+    loadCategory(),
+    loadTopProducts(),
+    loadRecentSales(),
+    loadLowStock()
+  ]);
 })();
+
+</script>
+<script>
+  lucide.createIcons();
 </script>

@@ -39,6 +39,20 @@ if (isset($_POST['inventory_submit'])) {
             ");
             $stmt->execute([$product_id, $quantity, $newStock, $type, $note]);
 
+
+            
+                // 🔍 AUDIT LOG
+                $pdo->prepare("
+                INSERT INTO activity_logs (user_id, action, module, record_id, description)
+                VALUES (?,?,?,?,?)
+                ")->execute([
+                $_SESSION['user_id'],
+                'inventory_adjust',
+                'inventory',
+                $productId,
+                "Adjusted stock by {$qty}"
+                ]);
+
             // 🔔 Log low stock notification if new stock is below threshold
             if ($newStock < 5) {
                 $message = '⚠️ Low stock alert: Product ID ' . $product_id . ' has only ' . $newStock . ' items left.';

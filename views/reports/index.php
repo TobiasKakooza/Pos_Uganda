@@ -252,10 +252,10 @@ async function runFinancial(){
   const p = await fetch('/POS_UG/controllers/reportsController.php?action=profit_and_loss&'+params()).then(r=>r.json());
 
   // KPIs
-  $('#kpiTotal').textContent = fmt(p.revenue||0);
+  $('#kpiTotal').textContent = fmt(p.gross_revenue||0);
   $('#kpiOrders').textContent = '—';
   $('#kpiAOV').textContent    = fmt(p.net_profit || 0);  // show Net Profit here
-  $('#kpiTax').textContent    = fmt(p.tax_total || 0);
+  $('#kpiTax').textContent    = fmt(p.vat_collected || 0);
 
   // Per-period P&L for chart
   const per = await fetch('/POS_UG/controllers/reportsController.php?action=pl_by_period&'+params()).then(r=>r.json());
@@ -287,16 +287,36 @@ async function runFinancial(){
 
   // Table: P&L summary + discounts/returns
   $('#rpHead').innerHTML = '<th>Metric</th><th class="rp-right">Amount</th>';
-  $('#rpBody').innerHTML = `
-    <tr><td>Revenue</td><td class="rp-right">${fmt(p.revenue||0)}</td></tr>
-    <tr><td>COGS</td><td class="rp-right">${fmt(p.cogs||0)}</td></tr>
-    <tr><td><strong>Gross Profit</strong></td><td class="rp-right"><strong>${fmt(p.gross_profit||0)}</strong></td></tr>
-    <tr><td>Operating Expenses</td><td class="rp-right">${fmt(p.operating_expenses||0)}</td></tr>
-    <tr><td><strong>Net Profit</strong></td><td class="rp-right"><strong>${fmt(p.net_profit||0)}</strong></td></tr>
-    <tr><td>Tax Collected</td><td class="rp-right">${fmt(p.tax_total||0)}</td></tr>
-    <tr><td>Discount Total</td><td class="rp-right">${fmt(p.discount_total||0)}</td></tr>
-    <tr><td>Returned Quantity</td><td class="rp-right">${(p.returns_qty||0).toLocaleString()}</td></tr>
-  `;
+$('#rpBody').innerHTML = `
+  <tr><td>Gross Sales</td>
+      <td class="rp-right">${fmt(p.gross_revenue||0)}</td></tr>
+
+  <tr><td>Discounts</td>
+      <td class="rp-right">-${fmt(p.discount_total||0)}</td></tr>
+
+  <tr><td><strong>Net Sales</strong></td>
+      <td class="rp-right"><strong>${fmt(p.revenue||0)}</strong></td></tr>
+
+  <tr><td>VAT Collected</td>
+      <td class="rp-right">${fmt(p.vat_collected||0)}</td></tr>
+
+  <tr><td>Net Revenue (ex VAT)</td>
+      <td class="rp-right">${fmt(p.net_revenue||0)}</td></tr>
+
+  <tr><td>COGS</td>
+      <td class="rp-right">${fmt(p.cogs||0)}</td></tr>
+
+  <tr><td><strong>Gross Profit</strong></td>
+      <td class="rp-right"><strong>${fmt(p.gross_profit||0)}</strong></td></tr>
+
+  <tr><td>Operating Expenses</td>
+      <td class="rp-right">${fmt(p.operating_expenses||0)}</td></tr>
+
+  <tr><td><strong>Net Profit</strong></td>
+      <td class="rp-right"><strong>${fmt(p.net_profit||0)}</strong></td></tr>
+`;
+
+
 
   // Export the summary CSV
   $('#rpExport').onclick = () => {

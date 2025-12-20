@@ -298,6 +298,85 @@ try {
     }
 
     /* ---------- INVENTORY ---------- */
+
+    // =======================================
+// INVENTORY SUMMARY (TOTAL BUSINESS WORTH)
+// =======================================
+case 'inventory_summary': {
+
+  $sql = "
+    WITH stock AS (
+      SELECT
+        p.id,
+        COALESCE(SUM(CASE WHEN i.type='in'  THEN i.quantity END),0)
+      - COALESCE(SUM(CASE WHEN i.type='out' THEN i.quantity END),0) AS on_hand
+      FROM products p
+      LEFT JOIN inventories i ON i.product_id = p.id
+      GROUP BY p.id
+    )
+    SELECT
+      COUNT(p.id) AS total_products,
+      SUM(s.on_hand) AS total_units,
+      SUM(s.on_hand * COALESCE(NULLIF(p.avg_cost,0), p.last_cost,0)) AS total_cost_value,
+      SUM(s.on_hand * p.price) AS total_selling_value
+    FROM products p
+    LEFT JOIN stock s ON s.id = p.id
+  ";
+
+  $row = $pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
+
+  $cost = (float)($row['total_cost_value'] ?? 0);
+  $sell = (float)($row['total_selling_value'] ?? 0);
+
+  echo json_encode([
+    'success' => true,
+    'total_products' => (int)($row['total_products'] ?? 0),
+    'total_units' => (int)($row['total_units'] ?? 0),
+    'total_cost_value' => $cost,
+    'total_selling_value' => $sell,
+    'expected_profit' => $sell - $cost
+  ]);
+  break;
+}
+
+
+// =======================================
+// INVENTORY VALUE BY CATEGORY
+// =======================================
+case 'inventory_by_category': {
+
+  $sql = "
+    WITH stock AS (
+      SELECT
+        p.id,
+        p.category_id,
+        COALESCE(SUM(CASE WHEN i.type='in'  THEN i.quantity END),0)
+      - COALESCE(SUM(CASE WHEN i.type='out' THEN i.quantity END),0) AS on_hand
+      FROM products p
+      LEFT JOIN inventories i ON i.product_id = p.id
+      GROUP BY p.id, p.category_id
+    )
+    SELECT
+      c.name AS category,
+      COUNT(p.id) AS products,
+      SUM(s.on_hand) AS units,
+      SUM(s.on_hand * COALESCE(NULLIF(p.avg_cost,0), p.last_cost,0)) AS cost_value,
+      SUM(s.on_hand * p.selling_price) AS selling_value
+    FROM products p
+    JOIN stock s ON s.id = p.id
+    LEFT JOIN categories c ON c.id = p.category_id
+    WHERE s.on_hand > 0
+    GROUP BY c.name
+    ORDER BY cost_value DESC
+  ";
+
+  echo json_encode([
+    'success' => true,
+    'rows' => $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC)
+  ]);
+  break;
+}
+
     case 'stock_levels': {
       $q     = trim($_GET['q'] ?? '');
       $catId = (int)($_GET['category_id'] ?? 0);
@@ -666,61 +745,146 @@ try {
       echo json_encode(['success'=>true,'rows'=>$rows]);
       break;
     }
-//PROFIT AND LOSS REPORT
-   case 'profit_and_loss': {
-  [$s,$e]=dtRange();
 
-  // Revenue & COGS
-  $stmt=$pdo->prepare("
+// =======================================
+// PROFIT AND LOSS REPORT (DISCOUNTS FIXED – URA COMPLIANT)
+// =======================================
+case 'profit_and_loss': {
+
+  $from = $_GET['from'] ?? date('Y-m-01');
+  $to   = $_GET['to']   ?? date('Y-m-d');
+
+  $s = $from.' 00:00:00';
+  $e = $to.' 23:59:59';
+
+  /* ===============================
+     GROSS SALES & COGS
+     (Before discounts, VAT inclusive)
+  =============================== */
+  $stmt = $pdo->prepare("
     SELECT
-      COALESCE(SUM(si.quantity*si.unit_price),0) AS revenue,
-      COALESCE(SUM(si.quantity * COALESCE(NULLIF(p.avg_cost,0), p.last_cost, 0)),0) AS cogs
+      COALESCE(SUM(si.quantity * si.unit_price),0) AS gross_sales,
+      COALESCE(SUM(
+        si.quantity * COALESCE(NULLIF(p.avg_cost,0), p.last_cost, 0)
+      ),0) AS cogs
     FROM sale_items si
-    JOIN sales s ON s.id=si.sale_id
-    JOIN products p ON p.id=si.product_id
+    JOIN sales s ON s.id = si.sale_id
+    JOIN products p ON p.id = si.product_id
     WHERE s.created_at BETWEEN :s AND :e
   ");
-  $stmt->execute([':s'=>$s,':e'=>$e]);
-  $r=$stmt->fetch(PDO::FETCH_ASSOC);
-  $revenue=(float)$r['revenue']; $cogs=(float)$r['cogs']; $gross=$revenue-$cogs;
+  $stmt->execute([':s'=>$s, ':e'=>$e]);
+  $r = $stmt->fetch(PDO::FETCH_ASSOC);
 
-  // Operating expenses (AP Bills not tied to PO/Receipt)
-  $qExp=$pdo->prepare("
-    SELECT COALESCE(SUM(total),0)
-    FROM ap_bills
-    WHERE bill_date BETWEEN :ds AND :de
-      AND status IN ('open','partially_paid','paid')
-      AND (po_id IS NULL AND receipt_id IS NULL)
+  $gross_sales = (float)$r['gross_sales'];
+  $cogs        = (float)$r['cogs'];
+
+  /* ===============================
+     DISCOUNTS (FROM TERMINAL)
+  =============================== */
+  $qDisc = $pdo->prepare("
+    SELECT COALESCE(SUM(discount_amount),0)
+    FROM sales
+    WHERE created_at BETWEEN :s AND :e
   ");
-  $qExp->execute([':ds'=>substr($s,0,10), ':de'=>substr($e,0,10)]);
-  $opex=(float)$qExp->fetchColumn();
+  $qDisc->execute([':s'=>$s, ':e'=>$e]);
+  $discount_total = (float)$qDisc->fetchColumn();
 
-  // Tax, Discounts, Returns
-  $qTax=$pdo->prepare("SELECT COALESCE(SUM(tax_amount),0) FROM sales WHERE created_at BETWEEN :s AND :e");
-  $qTax->execute([':s'=>$s,':e'=>$e]); $tax_total=(float)$qTax->fetchColumn();
+  /* ===============================
+     NET SALES (AFTER DISCOUNT)
+  =============================== */
+  $net_sales = $gross_sales - $discount_total;
 
-  $qDisc=$pdo->prepare("SELECT COALESCE(SUM(discount_amount),0) FROM sales WHERE created_at BETWEEN :s AND :e");
-  $qDisc->execute([':s'=>$s,':e'=>$e]); $discount_total=(float)$qDisc->fetchColumn();
+  /* ===============================
+     VAT COLLECTED
+     VAT = Net Sales × rate / (100 + rate)
+  =============================== */
+  $vatStmt = $pdo->prepare("
+    SELECT COALESCE(SUM(
+      (si.unit_price * si.quantity) *
+      (COALESCE(NULLIF(p.tax_rate,0),18) / (100 + COALESCE(NULLIF(p.tax_rate,0),18)))
+    ),0)
+    FROM sale_items si
+    JOIN sales s ON s.id = si.sale_id
+    JOIN products p ON p.id = si.product_id
+    WHERE s.created_at BETWEEN :s AND :e
+  ");
+  $vatStmt->execute([':s'=>$s, ':e'=>$e]);
+  $vat_collected = (float)$vatStmt->fetchColumn();
 
-  $qRet=$pdo->prepare("SELECT COALESCE(SUM(ABS(quantity)),0) FROM inventories WHERE type='return' AND created_at BETWEEN :s AND :e");
-  $qRet->execute([':s'=>$s,':e'=>$e]); $returns_qty=(float)$qRet->fetchColumn();
+  /* ===============================
+     NET REVENUE (EX VAT)
+  =============================== */
+  $net_revenue = $net_sales - $vat_collected;
 
-  $net = $gross - $opex;
+  /* ===============================
+     GROSS PROFIT
+  =============================== */
+  $gross_profit = $net_revenue - $cogs;
 
-  $out=[
-    'revenue'=>$revenue,'cogs'=>$cogs,'gross_profit'=>$gross,
-    'operating_expenses'=>$opex,'net_profit'=>$net,
-    'tax_total'=>$tax_total,'discount_total'=>$discount_total,'returns_qty'=>$returns_qty
+  /* ===============================
+     OPERATING EXPENSES
+  =============================== */
+  $expStmt = $pdo->prepare("
+    SELECT COALESCE(SUM(amount),0)
+    FROM expenses
+    WHERE expense_date BETWEEN :from AND :to
+  ");
+  $expStmt->execute([':from'=>$from, ':to'=>$to]);
+  $opex = (float)$expStmt->fetchColumn();
+
+  /* ===============================
+     RETURNS (QUANTITY)
+  =============================== */
+  $qRet = $pdo->prepare("
+    SELECT COALESCE(SUM(ABS(quantity)),0)
+    FROM inventories
+    WHERE type='return'
+      AND created_at BETWEEN :s AND :e
+  ");
+  $qRet->execute([':s'=>$s, ':e'=>$e]);
+  $returns_qty = (float)$qRet->fetchColumn();
+
+  /* ===============================
+     NET PROFIT
+  =============================== */
+  $net_profit = $gross_profit - $opex;
+
+  /* ===============================
+     RESPONSE
+  =============================== */
+  $out = [
+    'gross_revenue'      => $gross_sales,
+    'discount_total'     => $discount_total,
+    'revenue'            => $net_sales,      // ✅ AFTER DISCOUNT
+    'vat_collected'      => $vat_collected,
+    'net_revenue'        => $net_revenue,
+    'cogs'               => $cogs,
+    'gross_profit'       => $gross_profit,
+    'operating_expenses' => $opex,
+    'net_profit'         => $net_profit,
+    'returns_qty'        => $returns_qty
   ];
 
-  maybe_csv('profit_and_loss.csv',['metric','amount'],[
-    ['Revenue',$revenue],['COGS',$cogs],['Gross Profit',$gross],
-    ['Operating Expenses',$opex],['Net Profit',$net],
-    ['Tax Collected',$tax_total],['Discount Total',$discount_total],['Returned Qty',$returns_qty],
+  /* ===============================
+     CSV EXPORT
+  =============================== */
+  maybe_csv('profit_and_loss.csv', ['Metric','Amount'], [
+    ['Gross Sales', $gross_sales],
+    ['Discounts', -$discount_total],
+    ['Net Sales', $net_sales],
+    ['VAT Collected', $vat_collected],
+    ['Net Revenue (ex VAT)', $net_revenue],
+    ['COGS', $cogs],
+    ['Gross Profit', $gross_profit],
+    ['Operating Expenses', $opex],
+    ['Net Profit', $net_profit],
   ]);
-  echo json_encode(['success'=>true]+$out);
+
+  echo json_encode(['success'=>true] + $out);
   break;
 }
+
+
 case 'pl_by_period': {
   [$s,$e]=dtRange();
   $grp=$_GET['group'] ?? 'day'; // day|week|month

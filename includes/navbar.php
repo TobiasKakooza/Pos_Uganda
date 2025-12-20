@@ -1,221 +1,334 @@
 <?php
-require_once 'auth.php';
+require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/../config/db.php';
 
-$user = $_SESSION['user'];
-
-// Count unread notifications
-$notifStmt = $pdo->query("SELECT COUNT(*) FROM notifications WHERE is_read = 0");
-$notifCount = $notifStmt->fetchColumn();
+$user = $_SESSION['user'] ?? [];
+$notifCount = (int)$pdo->query(
+    "SELECT COUNT(*) FROM notifications WHERE is_read = 0"
+)->fetchColumn();
 ?>
-<nav>
-  <ul>
-    <li><a href="/POS_UG/views/dashboard.php" class="active">🏠 Dashboard</a></li>
 
-    <li class="toggle">
-      <a href="#">🛒 Products</a>
-      <ul>
-        <li><a href="/POS_UG/views/products/list.php">List Products</a></li>
-        <li><a href="#" onclick="loadPanelFromNav('/POS_UG/views/products/add.php')">Add Product</a></li>
-      </ul>
-    </li>
 
-    <li class="toggle">
-      <a href="#">💰 Sales</a>
-      <ul>
-        <li><a href="/POS_UG/views/sales/terminal.php">Sales Terminal</a></li>
-        <li><a href="/POS_UG/views/sales/history.php">Sales History</a></li>
-        <li><a href="/POS_UG/views/sales/invoice.php">Invoice</a></li>
-      </ul>
-    </li>
+<nav class="sidebar">
+<ul class="menu">
 
-    <li class="toggle">
-      <a href="#">📦 Inventory</a>
-      <ul>
+  <!-- DASHBOARD (everyone) -->
+  <li class="menu-item">
+    <a href="/POS_UG/views/dashboard.php" class="menu-link">
+      <i data-lucide="layout-dashboard"></i>
+      <span>Dashboard</span>
+    </a>
+  </li>
+
+  <!-- PRODUCTS -->
+  <?php if (can('products_manage')): ?>
+  <li class="menu-item has-sub">
+    <a class="menu-link toggle-link">
+      <i data-lucide="shopping-cart"></i>
+      <span>Products</span>
+    </a>
+    <ul class="submenu">
+      <li><a href="/POS_UG/views/products/list.php">List Products</a></li>
+      <!-- <li><a href="/POS_UG/views/products/add.php">Add Product</a></li> -->
+    </ul>
+  </li>
+  <?php endif; ?>
+
+  <!-- SALES -->
+  <?php if (can('sales_access')): ?>
+  <li class="menu-item has-sub">
+    <a class="menu-link toggle-link">
+      <i data-lucide="credit-card"></i>
+      <span>Sales</span>
+    </a>
+    <ul class="submenu">
+      <li><a href="/POS_UG/views/sales/terminal.php">Sales Terminal</a></li>
+      <li><a href="/POS_UG/views/sales/history.php">Sales History</a></li>
+    </ul>
+  </li>
+  <?php endif; ?>
+
+  <!-- INVENTORY -->
+  <?php if (can('inventory_view')): ?>
+  <li class="menu-item has-sub">
+    <a class="menu-link toggle-link">
+      <i data-lucide="package"></i>
+      <span>Inventory</span>
+    </a>
+    <ul class="submenu">
+      <?php if (can('inventory_adjust')): ?>
         <li><a href="/POS_UG/views/inventory/manage.php">Manage Inventory</a></li>
-        <li><a href="/POS_UG/views/inventory/history.php">Inventory History</a></li>
-      </ul>
-    </li>
+      <?php endif; ?>
+      <li><a href="/POS_UG/views/inventory/history.php">Inventory History</a></li>
+    </ul>
+  </li>
+  <?php endif; ?>
 
-    <li class="toggle">
-      <a href="#">👥 Customers</a>
-      <ul>
-        <li><a href="/POS_UG/views/customers/list.php">Customer List</a></li>
-        <li><a href="/POS_UG/views/customers/profile.php">Customer Profile</a></li>
-      </ul>
-    </li>
+  <!-- CUSTOMERS -->
+  <?php if (can('sales_access')): ?>
+  <li class="menu-item has-sub">
+    <a class="menu-link toggle-link">
+      <i data-lucide="users"></i>
+      <span>Customers</span>
+    </a>
+    <ul class="submenu">
+      <li><a href="/POS_UG/views/customers/list.php">Customer List</a></li>
+    </ul>
+  </li>
+  <?php endif; ?>
 
-    <li class="toggle">
-  <a href="#">🏭 Suppliers</a>
-  <ul>
-    <li><a href="/POS_UG/views/dashboard.php?view=suppliers/list">Supplier List</a></li>
-  </ul>
-</li>
-
-
-    <li class="toggle">
-  <a href="#">📊 Reports</a>
-  <ul>
-    <li><a href="/POS_UG/views/dashboard.php?view=reports">Report (embedded)</a></li>
-
-     <li><a href="/POS_UG/views/dashboard.php?view=reports/stock">Stock Levels</a></li>
-     <li><a href="/POS_UG/views/dashboard.php?view=reports/valuation">Stock Valuation</a></li>
-
-    <!-- Optional: keep these direct pages if you still use them -->
-    <li><a href="/POS_UG/views/reports/sales_report.php">Sales Report</a></li>
-    <li><a href="/POS_UG/views/reports/inventory_status.php">Inventory Status</a></li>
-    <li><a href="/POS_UG/views/reports/vat_summary.php">VAT Summary</a></li>
-  </ul>
-</li>
+  <!-- SUPPLIERS -->
+  <?php if (can('suppliers_manage')): ?>
+  <li class="menu-item has-sub">
+    <a class="menu-link toggle-link">
+      <i data-lucide="factory"></i>
+      <span>Suppliers</span>
+    </a>
+    <ul class="submenu">
+      <li><a href="/POS_UG/views/suppliers/list.php">Supplier List</a></li>
+    </ul>
+  </li>
+  <?php endif; ?>
 
 
-    <li class="toggle">
-      <a href="#">🔐 Users</a>
-      <ul>
-        <li><a href="/POS_UG/views/users/list.php">User List</a></li>
-        <li><a href="#" onclick="loadPanelFromNav('/POS_UG/views/users/add.php')">Add User</a></li>
-        <li><a href="/POS_UG/views/users/profile.php">User Profile</a></li>
-      </ul>
-    </li>
-
-    <!-- Notification Bell -->
-   <li class="toggle">
-  <a href="#">
-    🔔 Notifications
-    <?php if ($notifCount > 0): ?>
-      <span style="background:red;color:white;border-radius:10px;padding:2px 6px;font-size:12px;">
-        <?= $notifCount ?>
-      </span>
-    <?php endif; ?>
+  <!-- EXPENSES (ADMIN ONLY) -->
+<?php if (can('expenses_manage')): ?>
+<li class="menu-item">
+  <a href="/POS_UG/views/Expenses/index.php" class="menu-link">
+    <i data-lucide="wallet"></i>
+    <span>Expenses</span>
   </a>
-  <ul>
-    <li><a href="/POS_UG/views/notifications/notifications.php">All Notifications</a></li>
-  </ul>
 </li>
+<?php endif; ?>
 
+  <!-- REPORTS (ADMIN ONLY – BY PERMISSION) -->
+  <?php if (can('reports_view')): ?>
+  <li class="menu-item has-sub">
+    <a class="menu-link toggle-link">
+      <i data-lucide="bar-chart-3"></i>
+      <span>Reports</span>
+    </a>
+    <ul class="submenu">
+      <li><a href="/POS_UG/views/reports/index.php">Dashboard</a></li>
+      <li><a href="/POS_UG/views/reports/stock_levels.php">Stock Levels</a></li>
+      <li><a href="/POS_UG/views/reports/stock_valuation.php">Stock Valuation</a></li>
+    </ul>
+  </li>
+  <?php endif; ?>
 
-    <li style="margin-top: 20px; font-weight: bold; padding-left: 14px;">
-      <?= htmlspecialchars($user['name']) ?>
-    </li>
-    <li><a href="/POS_UG/controllers/logout.php">🚪 Logout</a></li>
-  </ul>
+  <!-- USERS (ADMIN ONLY) -->
+  <?php if (can('users_manage')): ?>
+  <li class="menu-item has-sub">
+    <a class="menu-link toggle-link">
+      <i data-lucide="shield"></i>
+      <span>Users</span>
+    </a>
+    <ul class="submenu">
+      <li><a href="/POS_UG/views/users/list.php">User List</a></li>
+    </ul>
+  </li>
+  <?php endif; ?>
+
+  <!-- PROFILE -->
+  <li class="menu-item">
+    <a href="/POS_UG/views/users/profile.php" class="menu-link">
+      <i data-lucide="user"></i>
+      <span>My Profile</span>
+    </a>
+  </li>
+
+  <!-- LOGOUT -->
+  <li class="menu-item">
+    <a href="/POS_UG/controllers/logout.php" class="menu-link danger">
+      <i data-lucide="log-out"></i>
+      <span>Logout</span>
+    </a>
+  </li>
+
+</ul>
 </nav>
 
-<!-- Notification Dropdown Styling -->
+
 <style>
-.notif-dropdown {
-  position: absolute;
-  right: 10px;
-  top: 30px;
-  background: #fff;
-  width: 300px;
-  border: 1px solid #ccc;
-  z-index: 1000;
-  padding: 10px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  border-radius: 4px;
-}
-.notif-dropdown .notif-header {
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 6px;
-  margin-bottom: 6px;
-}
-.notif-dropdown .notif-list {
-  max-height: 200px;
+/* =====================================================
+   DARK SIDEBAR (MATCH HEADER)
+===================================================== */
+.sidebar {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  bottom: 0;
+  width: 220px;
+  background: linear-gradient(180deg, #020617, #020617);
+  border-right: 1px solid #1f2a44;
   overflow-y: auto;
+  z-index: 1100;
 }
-.notif-dropdown .notif-item {
-  padding: 5px 0;
-  border-bottom: 1px solid #eee;
+
+.menu {
+  list-style: none;
+  padding: 10px 0;
+  margin: 0;
 }
-.notif-dropdown .notif-item:last-child {
-  border-bottom: none;
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  color: #e5e7eb;
+  text-decoration: none;
+  font-size: 14px;
+  border-radius: 10px;
+  margin: 2px 10px;
+  transition: background .15s ease, color .15s ease;
+}
+
+.menu-link i {
+  width: 18px;
+  height: 18px;
+  opacity: .8;
+}
+
+.menu-link:hover {
+  background: #1e293b;
+}
+
+.menu-item.has-sub > .menu-link::after {
+  content: "▸";
+  margin-left: auto;
+  opacity: .4;
+  transition: transform .2s ease;
+}
+
+.menu-item.open > .menu-link::after {
+  transform: rotate(90deg);
+}
+
+.submenu {
+  display: none;
+  margin-left: 22px;
+}
+
+.menu-item.open > .submenu {
+  display: block;
+}
+
+
+.submenu a {
+  display: block;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #94a3b8;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.submenu a:hover {
+  background: #1e293b;
+  color: #e5e7eb;
+}
+
+.menu-footer {
+  margin: 14px 16px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.menu-link.danger {
+  color: #ef4444;
+}
+
+.menu-link.danger:hover {
+  background: rgba(239,68,68,.15);
+}
+
+
+/* ===== ARROW ===== */
+.has-sub > .menu-link::after {
+  content: "▸";
+  margin-left: auto;
+  transition: transform .2s ease;
+  opacity: .7;
+}
+
+/* Rotate arrow on hover OR open */
+.has-sub:hover > .menu-link::after,
+.has-sub.open > .menu-link::after {
+  transform: rotate(90deg);
+}
+
+/* ===== SUBMENU ===== */
+.submenu {
+  display: none;
+  background: #0b3d91;
+}
+
+/* Hover opens submenu */
+.has-sub:hover > .submenu {
+  display: block;
+}
+
+/* Click opens submenu */
+.has-sub.open > .submenu {
+  display: block;
+}
+
+.submenu a {
+  display: block;
+  padding: 8px 36px;
+  font-size: 13px;
+  color: #e3f2fd;
+}
+
+.submenu a:hover {
+  background: #1565c0;
+}
+
+/* ===== FOOTER ===== */
+.menu-footer {
+  margin-top: 16px;
+  padding: 12px 18px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #bbdefb;
+}
+
+/* BADGE */
+.badge {
+  background: #e53935;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
 }
 </style>
 
-<!-- Notification JS -->
 <script>
-document.getElementById('notifBell').addEventListener('click', function(e) {
-  e.preventDefault();
-  const dropdown = document.getElementById('notifDropdown');
-  dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+document.querySelectorAll('.toggle-link').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const parent = link.closest('.has-sub');
+
+    document.querySelectorAll('.has-sub.open').forEach(item => {
+      if (item !== parent) item.classList.remove('open');
+    });
+
+    parent.classList.toggle('open');
+  });
+});
+
+/* Close click-open menus when clicking outside */
+document.addEventListener('click', () => {
+  document.querySelectorAll('.has-sub.open').forEach(item => {
+    item.classList.remove('open');
+  });
+});
+
+/* Prevent sidebar clicks from bubbling */
+document.querySelector('.sidebar').addEventListener('click', e => {
+  e.stopPropagation();
 });
 </script>
-
-<!-- Side Panel Loader (already working) -->
-<script>
-function ensurePanelContainer() {
-  let panel = document.getElementById('panel-right');
-  if (!panel) {
-    panel = document.createElement('div');
-    panel.id = 'panel-right';
-    panel.className = 'side-panel';
-    document.body.appendChild(panel);
-  }
-  return panel;
-}
-
-function loadPanelFromNav(url) {
-  const panel = ensurePanelContainer();
-  fetch(url)
-    .then(res => res.text())
-    .then(html => {
-      panel.innerHTML = '<button class="close-btn" onclick="hidePanel()">×</button>' + html;
-      panel.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    })
-    .catch(err => {
-      alert('Unable to load panel.');
-      console.error(err);
-    });
-}
-
-function hidePanel() {
-  const panel = document.getElementById('panel-right');
-  if (panel) {
-    panel.classList.add('hidden');
-    panel.innerHTML = '';
-    document.body.style.overflow = 'auto';
-  }
-}
-</script>
-
-<!-- Panel Styling -->
-<style>
-.side-panel {
-  position: fixed;
-  top: 100px;
-  right: 0;
-  width: 480px;
-  max-width: 100%;
-  height: calc(100% - 100px);
-  background: #ffffff;
-  box-shadow: -2px 0 10px rgba(0,0,0,0.15);
-  overflow-y: auto;
-  padding: 20px;
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  border-left: 1px solid #ddd;
-  animation: slideIn 0.3s ease;
-}
-.side-panel.hidden {
-  display: none;
-}
-@keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0%); opacity: 1; }
-}
-.close-btn {
-  align-self: flex-end;
-  font-size: 20px;
-  border: none;
-  background: none;
-  color: #333;
-  cursor: pointer;
-  margin-bottom: -10px;
-}
-</style>

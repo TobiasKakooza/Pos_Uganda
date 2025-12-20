@@ -1,159 +1,465 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once __DIR__ . '/../config/db.php';
+
+$user = $_SESSION['user'] ?? [];
+$userId = $user['id'] ?? 0;
+$roleId = $user['role_id'] ?? 0;
+
+/* Resolve role name */
+$roleName = match ($roleId) {
+    1 => 'admin',
+    2 => 'cashier',
+    3 => 'inventory',
+    default => null
+};
+
+/* Fetch unread notifications for THIS user / role */
+$stmt = $pdo->prepare("
+    SELECT id, message, link, created_at
+    FROM notifications
+    WHERE is_read = 0
+      AND (target_role = :role OR user_id = :uid)
+    ORDER BY created_at DESC
+    LIMIT 5
+");
+$stmt->execute([
+    ':role' => $roleName,
+    ':uid'  => $userId
+]);
+
+$notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$notifCount = count($notifications);
+
+/* Profile image fallback */
+$avatar = $user['avatar'] ?? '/POS_UG/assets/images/avatar-default.png';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Toby POS</title>
-  <link rel="stylesheet" href="../../assets/css/inventory.css">
+<meta charset="UTF-8">
+<title>Toby POS</title>
 
-  <link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/POS_UG/assets/css/style.css">
+<link rel="stylesheet" href="/POS_UG/assets/css/inventory.css">
 
-  <!-- Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-<!-- jQuery (required for Select2) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="/POS_UG/assets/js/main.js" defer></script>
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
 
-<!-- Select2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-  <script src="/POS_UG/assets/js/main.js" defer></script>
+<style>
+/* =====================================================
+   DARK HEADER – NOTIFICATIONS + PROFILE
+===================================================== */
+:root {
+  --bg-header: #020617;
+  --bg-panel: #0f172a;
+  --bg-hover: #1e293b;
+  --border: #1f2a44;
+  --text-main: #e5e7eb;
+  --text-muted: #94a3b8;
+  --danger: #ef4444;
+}
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+/* ===== HEADER ===== */
+header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 64px;
+  background: linear-gradient(180deg, #020617, #020617);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 1200;
+  box-shadow: 0 10px 30px rgba(0,0,0,.6);
+}
 
-    body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background-color: #f4f6f9;
-      color: #333;
-    }
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 17px;
+  font-weight: 600;
+}
 
-    /* Header */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background-color: #1e88e5;
-      color: white;
-      padding: 0 24px;
-      height: 64px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
+/* ===== ACTIONS ===== */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
 
-    .header-title {
-      font-size: 1.6rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+/* ===== NOTIFICATIONS ===== */
+.notif-wrapper { position: relative; }
 
-    .header-title img {
-      width: 32px;
-      height: 32px;
-    }
+.notif-bell {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--text-main);
+  padding: 6px;
+  border-radius: 10px;
+}
 
-    .header-user {
-      font-size: 14px;
-      font-weight: 400;
-      opacity: 0.8;
-    }
+.notif-bell:hover {
+  background: var(--bg-hover);
+}
 
-    /* Sidebar */
-    nav {
-      background-color: #0d47a1;
-      width: 220px;
-      position: fixed;
-      top: 64px;
-      left: 0;
-      bottom: 0;
-      overflow-y: auto;
-      padding-top: 1rem;
-      z-index: 999;
-    }
+.notif-dot {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 10px rgba(239,68,68,.9);
+}
 
-    nav ul {
-      list-style: none;
-      padding: 0;
-    }
+#notifModal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-    nav ul li {
-      position: relative;
-    }
+.hidden {
+  display: none !important;
+}
 
-    nav ul li a {
-      display: block;
-      padding: 12px 20px;
-      color: white;
-      text-decoration: none;
-      font-weight: 500;
-      transition: background 0.3s ease;
-    }
 
-    nav ul li a:hover,
-    nav ul li a.active {
-      background-color: #1565c0;
-    }
+/* ===== DROPDOWNS ===== */
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  width: 280px;
+  background: linear-gradient(180deg, #0f172a, #020617);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  box-shadow: 0 30px 70px rgba(0,0,0,.75);
+  overflow: hidden;
+  z-index: 2000;
+}
 
-    nav ul li ul {
-      display: none;
-      background-color: #1565c0;
-    }
+.dropdown h4 {
+  margin: 0;
+  padding: 14px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+}
 
-    nav ul li:hover > ul {
-      display: block;
-    }
+.dropdown a {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-main);
+  text-decoration: none;
+}
 
-    nav ul li ul li a {
-      padding-left: 40px;
-    }
+.dropdown a:hover {
+  background: var(--bg-hover);
+}
 
-    /* Content */
-    .container, main {
-      margin-left: 240px;
-      margin-top: 80px;
-      padding: 2rem;
-      min-height: calc(100vh - 80px);
-      background: white;
-      border-radius: 8px;
-      overflow-x: auto;
-    }
+.hidden { display: none; }
 
-    ul {
-      list-style-type: none;
-    }
+/* ===== PROFILE ===== */
+.profile-wrapper { position: relative; }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      nav {
-        position: relative;
-        width: 100%;
-        height: auto;
-      }
+.profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-main);
+}
 
-      .container, main {
-        margin-left: 0;
-        margin-top: 100px;
-      }
-    }
-  </style>
+.profile-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+.profile-name {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ===== MAIN OFFSET ===== */
+main {
+  margin-left: 220px;
+  margin-top: 64px;
+  padding: 24px;
+  min-height: calc(100vh - 64px);
+  background: #f4f6f9; /* LIGHT */
+}
+
+
+
+.app-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.app-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  color: var(--text-main);
+  opacity: .95;
+}
+.notif-bell i {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+.profile-btn i {
+  width: 16px;
+  height: 16px;
+  opacity: .6;
+}
+.dropdown a i {
+  width: 16px;
+  height: 16px;
+  opacity: .75;
+}
+
+.danger-link {
+  color: #ef4444 !important;
+}
+.header-actions {
+  margin-left: auto;
+}
+
+</style>
 </head>
 
 <body>
-  <header>
-    <div class="header-title">
-      <img src="/assets/images/logo-pos.jpg" alt="POS Logo"> <!-- optional icon -->
-       POS System
+
+<header>
+
+  <div class="header-title">
+  <img src="/POS_UG/assets/images/logo-pos.jpg" class="app-logo">
+  <span class="app-name">Toby POS</span>
+</div>
+
+
+  <div class="header-actions">
+
+    <!-- 🔔 Notifications -->
+<div class="notif-wrapper">
+  <button id="notifBell" class="notif-bell">
+    <i data-lucide="bell"></i>
+    <?php if ($notifCount): ?>
+      <span class="notif-dot"><?= $notifCount ?></span>
+    <?php endif; ?>
+  </button>
+
+  <div id="notifDropdown" class="dropdown hidden">
+    <h4>Notifications</h4>
+
+    <?php if (!$notifications): ?>
+      <div style="padding:16px;color:#94a3b8;text-align:center">
+        No new notifications
+      </div>
+    <?php endif; ?>
+
+    <?php foreach ($notifications as $n): ?>
+      <a href="#"
+   class="notif-item"
+   data-id="<?= $n['id'] ?>"
+   data-message="<?= htmlspecialchars($n['message'], ENT_QUOTES) ?>"
+   data-time="<?= date('Y-m-d H:i', strtotime($n['created_at'])) ?>">
+  <?= htmlspecialchars($n['message']) ?>
+  <small style="color:#64748b">
+    <?= date('H:i d M', strtotime($n['created_at'])) ?>
+  </small>
+</a>
+
+    <?php endforeach; ?>
+
+    <a href="/POS_UG/views/notifications/notifications.php">
+      View all →
+    </a>
+  </div>
+</div>
+
+
+    <!-- 👤 PROFILE -->
+    <div class="profile-wrapper">
+     <button id="profileBtn" class="profile-btn">
+  <img src="<?= $avatar ?>" class="profile-avatar">
+  <span class="profile-name"><?= htmlspecialchars($user['name']) ?></span>
+  <i data-lucide="chevron-down"></i>
+</button>
+
+
+      <div id="profileDropdown" class="dropdown hidden">
+<a href="/POS_UG/views/users/profile.php">
+  <i data-lucide="user"></i> My Profile
+</a>
+<a href="/POS_UG/controllers/logout.php" class="danger-link">
+  <i data-lucide="log-out"></i> Logout
+</a>
+
+      </div>
     </div>
-    <div class="header-user">
-      Welcome, <?php echo $_SESSION['username'] ?? 'User'; ?>
+
+  </div>
+</header>
+
+
+<!-- Notification View Modal -->
+<div id="notifModal" class="hidden" style="
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.6);
+  z-index:3000;
+">
+
+  <div style="
+    background:#0f172a; color:#e5e7eb;
+    width:460px; border-radius:14px;
+    padding:22px;
+    box-shadow:0 30px 80px rgba(0,0,0,.9);
+  ">
+    <h3 style="margin-top:0">🔔 Notification Details</h3>
+
+    <p id="notifModalMsg" style="margin:12px 0;font-size:15px"></p>
+
+    <div id="notifExtraDetails"
+         style="font-size:13px;color:#94a3b8;margin-bottom:12px">
+      <!-- populated dynamically -->
     </div>
-  </header>
+
+    <small id="notifModalTime" style="color:#64748b"></small>
+
+    <div style="display:flex;gap:10px;margin-top:22px;justify-content:flex-end">
+      <button id="notifMarkRead" class="btn btn-primary">
+        Mark as Read
+      </button>
+      <button id="notifClose" class="btn">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<?php require_once __DIR__ . '/navbar.php'; ?>
+
+<main>
+
+<script>
+const notifBell = document.getElementById('notifBell');
+const notifDropdown = document.getElementById('notifDropdown');
+const profileBtn = document.getElementById('profileBtn');
+const profileDropdown = document.getElementById('profileDropdown');
+
+notifBell?.addEventListener('click', e => {
+  e.stopPropagation();
+  notifDropdown.classList.toggle('hidden');
+  profileDropdown.classList.add('hidden');
+});
+
+profileBtn?.addEventListener('click', e => {
+  e.stopPropagation();
+  profileDropdown.classList.toggle('hidden');
+  notifDropdown.classList.add('hidden');
+});
+
+document.addEventListener('click', () => {
+  notifDropdown.classList.add('hidden');
+  profileDropdown.classList.add('hidden');
+});
+</script>
+<script>
+  lucide.createIcons();
+</script>
+<script>
+let activeNotifId = null;
+
+/* ✅ EVENT DELEGATION — works on dashboard & notifications page */
+document.addEventListener('click', function (e) {
+  const item = e.target.closest('.notif-item');
+  if (!item) return;
+
+  e.preventDefault();
+
+  activeNotifId = item.dataset.id;
+
+  document.getElementById('notifModalMsg').textContent =
+    item.dataset.message;
+
+  document.getElementById('notifModalTime').textContent =
+    'Created at: ' + item.dataset.time;
+
+  document.getElementById('notifExtraDetails').innerHTML = 'Loading details…';
+
+  fetch(`/POS_UG/controllers/notificationsDetails.php?id=${activeNotifId}`)
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success) {
+        document.getElementById('notifExtraDetails').innerHTML = 'No details available';
+        return;
+      }
+
+      document.getElementById('notifExtraDetails').innerHTML = `
+        <div>👤 Cashier: <strong>${d.cashier}</strong></div>
+        <div>🛒 Items: <strong>${d.product}</strong></div>
+        <div>💰 Total: <strong>UGX ${Number(d.price).toLocaleString()}</strong></div>
+      `;
+    });
+
+  document.getElementById('notifModal').classList.remove('hidden');
+  document.getElementById('notifDropdown')?.classList.add('hidden');
+});
+
+/* ✅ Close modal */
+document.getElementById('notifClose').onclick = () => {
+  document.getElementById('notifModal').classList.add('hidden');
+  activeNotifId = null;
+  document.getElementById('notifExtraDetails').innerHTML = '';
+};
+
+/* ✅ Mark as read (NO redirect, UX-friendly) */
+document.getElementById('notifMarkRead').onclick = () => {
+  if (!activeNotifId) return;
+
+  fetch(`/POS_UG/controllers/notificationActions.php?action=read&id=${activeNotifId}`)
+    .then(r => r.json())
+    .then(() => {
+      document.getElementById('notifModal').classList.add('hidden');
+
+      // Visually update items without reload
+      document.querySelectorAll(`[data-id="${activeNotifId}"]`)
+        .forEach(el => {
+          const row = el.closest('tr');
+          if (row) row.style.background = '';
+        });
+
+      // Remove bell badge if needed
+      const dot = document.querySelector('.notif-dot');
+      if (dot) dot.remove();
+
+      activeNotifId = null;
+    });
+};
+</script>

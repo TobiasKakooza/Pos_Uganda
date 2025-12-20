@@ -8,59 +8,142 @@ require '../config/db.php';
 
 // ADD PRODUCT
 if (isset($_POST['add_product'])) {
-    $name = trim($_POST['name']);
-    $sku = trim($_POST['sku']);
+
+    $name  = trim($_POST['name']);
+    $sku   = trim($_POST['sku']);
     $barcode = trim($_POST['barcode']);
-    $price = floatval($_POST['price']);
-    $tax_rate = isset($_POST['tax_rate']) ? floatval($_POST['tax_rate']) : 0;
+
+    $buyingPrice  = floatval($_POST['cost_price']);   // COST
+    $sellingPrice = floatval($_POST['price']);        // SELLING
+
+    $tax_rate  = floatval($_POST['tax_rate'] ?? 0);
     $category_id = intval($_POST['category_id']);
     $unit_id = !empty($_POST['unit_id']) ? intval($_POST['unit_id']) : null;
-    $stock_alert_threshold = isset($_POST['stock_alert_threshold']) ? intval($_POST['stock_alert_threshold']) : 0;
+    $stock_alert_threshold = intval($_POST['stock_alert_threshold'] ?? 2);
+    $initialStock = intval($_POST['initial_stock'] ?? 0);
 
-    if ($name && $sku && $price > 0 && $category_id) {
+    if ($name && $sku && $sellingPrice > 0 && $buyingPrice > 0 && $category_id) {
+
         try {
+            $pdo->beginTransaction();
+
+            // 1️⃣ Insert product
             $stmt = $pdo->prepare("
                 INSERT INTO products 
-                    (name, sku, barcode, price, tax_rate, category_id, unit_id, stock_alert_threshold) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (
+                    name, sku, barcode,
+                    price, avg_cost, last_cost,
+                    tax_rate, category_id, unit_id, stock_alert_threshold
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([$name, $sku, $barcode, $price, $tax_rate, $category_id, $unit_id, $stock_alert_threshold]);
-            $_SESSION['success'] = "✅ Product added successfully.";
+
+            $stmt->execute([
+                $name,
+                $sku,
+                $barcode,
+                $sellingPrice,
+                $buyingPrice,
+                $buyingPrice,
+                $tax_rate,
+                $category_id,
+                $unit_id,
+                $stock_alert_threshold
+            ]);
+
+            $productId = $pdo->lastInsertId();
+
+            // 2️⃣ Insert initial stock into inventories
+            if ($initialStock > 0) {
+                $stmt = $pdo->prepare("
+                    INSERT INTO inventories
+                    (product_id, quantity, type, note)
+                    VALUES (?, ?, 'in', ?)
+                ");
+                $stmt->execute([
+                    $productId,
+                    $initialStock,
+                    'Initial stock'
+                ]);
+            }
+
+            $pdo->commit();
+            $_SESSION['success'] = " Product added with initial stock.";
+
         } catch (Exception $e) {
+            $pdo->rollBack();
             $_SESSION['error'] = "❌ Failed to add product: " . $e->getMessage();
         }
+
     } else {
-        $_SESSION['error'] = "❌ Please fill all required fields.";
+        $_SESSION['error'] = "❌ Please fill all required fields correctly.";
     }
 
     header('Location: ../views/products/list.php');
     exit;
 }
 
+
+
+
+
+
+
 // UPDATE PRODUCT
 if (isset($_POST['update_product'])) {
-    $id = intval($_POST['id']);
+
+    $id   = intval($_POST['id']);
     $name = trim($_POST['name']);
-    $sku = trim($_POST['sku']);
+    $sku  = trim($_POST['sku']);
     $barcode = trim($_POST['barcode']);
-    $price = floatval($_POST['price']);
-    $tax_rate = isset($_POST['tax_rate']) ? floatval($_POST['tax_rate']) : 0;
+
+    $sellingPrice = floatval($_POST['price']);
+    $costPrice    = floatval($_POST['cost_price']); // ✅ NEW
+
+    $tax_rate  = floatval($_POST['tax_rate'] ?? 0);
     $category_id = intval($_POST['category_id']);
     $unit_id = !empty($_POST['unit_id']) ? intval($_POST['unit_id']) : null;
-    $stock_alert_threshold = isset($_POST['stock_alert_threshold']) ? intval($_POST['stock_alert_threshold']) : 0;
+    $stock_alert_threshold = intval($_POST['stock_alert_threshold'] ?? 2);
 
-    if ($id && $name && $sku && $price > 0 && $category_id) {
+    if ($id && $name && $sku && $sellingPrice > 0 && $costPrice > 0 && $category_id) {
+
         try {
             $stmt = $pdo->prepare("
                 UPDATE products 
-                SET name = ?, sku = ?, barcode = ?, price = ?, tax_rate = ?, category_id = ?, unit_id = ?, stock_alert_threshold = ?
+                SET 
+                    name = ?,
+                    sku = ?,
+                    barcode = ?,
+                    price = ?,
+                    avg_cost = ?,       -- ✅ update cost
+                    last_cost = ?,      -- ✅ update cost
+                    tax_rate = ?,
+                    category_id = ?,
+                    unit_id = ?,
+                    stock_alert_threshold = ?
                 WHERE id = ?
             ");
-            $stmt->execute([$name, $sku, $barcode, $price, $tax_rate, $category_id, $unit_id, $stock_alert_threshold, $id]);
-            $_SESSION['success'] = "✅ Product updated successfully.";
+
+            $stmt->execute([
+                $name,
+                $sku,
+                $barcode,
+                $sellingPrice,
+                $costPrice,
+                $costPrice,
+                $tax_rate,
+                $category_id,
+                $unit_id,
+                $stock_alert_threshold,
+                $id
+            ]);
+
+            $_SESSION['success'] = " Product updated successfully.";
+
         } catch (Exception $e) {
             $_SESSION['error'] = "❌ Failed to update product: " . $e->getMessage();
         }
+
     } else {
         $_SESSION['error'] = "❌ Invalid input for update.";
     }
@@ -68,6 +151,8 @@ if (isset($_POST['update_product'])) {
     header('Location: ../views/products/list.php');
     exit;
 }
+
+
 
 // DELETE PRODUCT
 if (isset($_GET['delete'])) {

@@ -1,4 +1,10 @@
-<?php require_once('../../includes/auth.php'); ?>
+<?php
+include('../../includes/auth.php');
+include('../../includes/header.php');
+include('../../includes/navbar.php');
+require_once('../../config/db.php');
+?>
+
 <link rel="stylesheet" href="../../assets/css/terminal.css" />
 <style>
 

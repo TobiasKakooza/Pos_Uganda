@@ -12,22 +12,32 @@ $action = $_REQUEST['action'] ?? '';
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'search') {
     $query = $_GET['query'] ?? '';
 
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE name LIKE ? OR sku = ? OR barcode = ? LIMIT 1");
+    $stmt = $pdo->prepare("
+        SELECT * 
+        FROM products 
+        WHERE name LIKE ? OR sku = ? OR barcode = ?
+        LIMIT 1
+    ");
     $stmt->execute(["%$query%", $query, $query]);
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($product) {
-        // latest stock_after (fast, audit-based)
+        // ✅ Correct stock calculation
         $stockStmt = $pdo->prepare("
-            SELECT stock_after
+            SELECT COALESCE(
+                SUM(
+                    CASE
+                        WHEN type = 'in'  THEN quantity
+                        WHEN type = 'out' THEN -quantity
+                        ELSE 0
+                    END
+                ), 0
+            )
             FROM inventories
             WHERE product_id = ?
-            ORDER BY created_at DESC, id DESC
-            LIMIT 1
         ");
         $stockStmt->execute([$product['id']]);
-        $stock = (int)$stockStmt->fetchColumn();
-        $product['stock'] = max(0, $stock);
+        $product['stock'] = (int)$stockStmt->fetchColumn();
 
         echo json_encode(['success' => true, 'product' => $product]);
     } else {
@@ -35,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'search') {
     }
     exit;
 }
+
 
 /* =========================================================
    💾 Save Sale (POST)
@@ -188,14 +199,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'save') {
             $total,
             $saleId
         ]);
+$pdo->commit();
 
-        $pdo->commit();
+/* ============================================
+   🔔 NOTIFY ADMIN ABOUT CASHIER SALE
+   (SAFE – WILL NEVER BREAK SALE)
+============================================ */
+try {
+    $notify = $pdo->prepare("
+    INSERT INTO notifications (
+        product_id,
+        message,
+        user_id,
+        target_role,
+        type,
+        link,
+        created_at
+    ) VALUES (NULL, ?, ?, 'admin', 'sale', ?, NOW())
+");
 
-        echo json_encode([
-            'success' => true,
-            'sale_id' => $saleId,
-            'alerts'  => $alerts
-        ]);
+    $notify->execute([
+        "Cashier completed sale #{$saleId}",
+        $userId, // cashier who made the sale
+        "/POS_UG/views/reports/sales.php?id={$saleId}"
+    ]);
+} catch (Throwable $e) {
+    // Intentionally ignored
+    // Sale must NEVER fail because of notifications
+}
+
+echo json_encode([
+    'success' => true,
+    'sale_id' => $saleId,
+    'alerts'  => $alerts
+]);
+
     } catch (Exception $e) {
         $pdo->rollBack();
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -207,19 +245,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'save') {
    📜 Recent sales (GET)
 ========================================================= */
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'history') {
+
+    require_once __DIR__ . '/../includes/auth.php';
+
+    $roleId = $_SESSION['role_id'] ?? null;
+    $userId = $_SESSION['user_id'] ?? null;
+
     $where = [];
     $args  = [];
 
-    // Filters
-    if (!empty($_GET['from'])) { $where[] = "DATE(s.created_at) >= ?"; $args[] = $_GET['from']; }
-    if (!empty($_GET['to']))   { $where[] = "DATE(s.created_at) <= ?"; $args[] = $_GET['to']; }
+    /* =====================================================
+       🔐 ROLE-BASED VISIBILITY
+    ===================================================== */
+
+    // CASHIER → ONLY OWN SALES
+    if ($roleId === 2) {
+        $where[] = "s.user_id = ?";
+        $args[]  = $userId;
+    }
+
+    // INVENTORY MANAGER → NO SALES ACCESS
+    if ($roleId === 3) {
+        echo json_encode([
+            'success' => true,
+            'total'   => 0,
+            'sales'   => []
+        ]);
+        exit;
+    }
+
+    /* =====================================================
+       FILTERS
+    ===================================================== */
+
+    if (!empty($_GET['from'])) {
+        $where[] = "DATE(s.created_at) >= ?";
+        $args[]  = $_GET['from'];
+    }
+
+    if (!empty($_GET['to'])) {
+        $where[] = "DATE(s.created_at) <= ?";
+        $args[]  = $_GET['to'];
+    }
+
     if (!empty($_GET['payment'])) {
-        // case-insensitive match; allows “cash”, “Cash”, etc.
         $where[] = "LOWER(s.payment_type) LIKE ?";
         $args[]  = strtolower($_GET['payment']) . '%';
     }
+
     if (!empty($_GET['q'])) {
-        // search id, comment, or user name
         $where[] = "(s.id = ? OR s.comment LIKE ? OR u.name LIKE ?)";
         $qLike = '%' . $_GET['q'] . '%';
         $args[] = (int)$_GET['q'];
@@ -227,37 +301,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'history') {
         $args[] = $qLike;
     }
 
-    // Sorting (whitelist)
-    $sortable = ['id','created_at','subtotal','discount_amount','tax_amount','total_amount','paid_amount','change_amount'];
-    $sort = in_array($_GET['sort'] ?? 'created_at', $sortable, true) ? $_GET['sort'] : 'created_at';
+    /* =====================================================
+       SORTING (SAFE)
+    ===================================================== */
+
+    $sortable = [
+        'id','created_at','subtotal','discount_amount',
+        'tax_amount','total_amount','paid_amount','change_amount'
+    ];
+
+    $sort = in_array($_GET['sort'] ?? 'created_at', $sortable, true)
+          ? $_GET['sort']
+          : 'created_at';
+
     $dir  = strtolower($_GET['dir'] ?? 'desc') === 'asc' ? 'ASC' : 'DESC';
 
-    // Pagination
-    $limit  = max(1, min((int)($_GET['limit'] ?? 25), 200));  // cap
+    /* =====================================================
+       PAGINATION
+    ===================================================== */
+
+    $limit  = max(1, min((int)($_GET['limit'] ?? 25), 200));
     $offset = max(0, (int)($_GET['offset'] ?? 0));
 
-    $whereSql = count($where) ? ('WHERE ' . implode(' AND ', $where)) : '';
+    $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
-    // Total count for pager
-    $countSql = "SELECT COUNT(*) FROM sales s JOIN users u ON s.user_id = u.id $whereSql";
+    /* =====================================================
+       COUNT (FOR PAGER)
+    ===================================================== */
+
+    $countSql = "
+        SELECT COUNT(*)
+        FROM sales s
+        JOIN users u ON s.user_id = u.id
+        $whereSql
+    ";
+
     $countStmt = $pdo->prepare($countSql);
     $countStmt->execute($args);
     $total = (int)$countStmt->fetchColumn();
 
-    // Data page
+    /* =====================================================
+       DATA
+    ===================================================== */
+
     $sql = "
-      SELECT s.*, u.name AS user
-      FROM sales s
-      JOIN users u ON s.user_id = u.id
-      $whereSql
-      ORDER BY s.$sort $dir
-      LIMIT $limit OFFSET $offset
+        SELECT s.*, u.name AS user
+        FROM sales s
+        JOIN users u ON s.user_id = u.id
+        $whereSql
+        ORDER BY s.$sort $dir
+        LIMIT $limit OFFSET $offset
     ";
+
     $stmt = $pdo->prepare($sql);
     $stmt->execute($args);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    echo json_encode(['success' => true, 'total' => $total, 'sales' => $rows]);
+    echo json_encode([
+        'success' => true,
+        'total'   => $total,
+        'sales'   => $stmt->fetchAll(PDO::FETCH_ASSOC)
+    ]);
     exit;
 }
 
@@ -310,7 +413,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'cash_move') {
     $type   = ($data['type'] ?? 'in') === 'out' ? 'out' : 'in';
     $amount = (float)($data['amount'] ?? 0);
     $note   = $data['note'] ?? null;
-    $userId = $_SESSION['user_id'] ?? null;
+    // $userId = $_SESSION['user_id'] ?? null;
+    if (!isset($_SESSION['user']['id'])) {
+    echo json_encode(['success' => false, 'message' => 'User not authenticated']);
+    exit;
+}
+
+$userId = (int) $_SESSION['user']['id'];
+
 
     if ($amount <= 0) {
         echo json_encode(['success'=>false, 'message'=>'Amount must be > 0']);
