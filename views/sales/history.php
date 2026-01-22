@@ -233,6 +233,40 @@ require_once('../../config/db.php');
   .history-head{ flex-direction:column; align-items:flex-start; gap:10px; }
   .history-head .group{ width:100%; }
 }
+
+
+/* ======================================================
+   SALES HISTORY – LAYOUT ALIGNMENT FIX
+   (Navbar + Sidebar aware | No HTML changes)
+====================================================== */
+
+/* Respect dashboard layout */
+.history-wrap {
+  margin-top: 64px;          /* header height */
+  margin-left: 260px;        /* sidebar width */
+  padding: 24px 28px;
+  min-height: calc(100vh - 64px);
+}
+
+/* Prevent horizontal squeeze */
+.history-wrap,
+.history-wrap * {
+  box-sizing: border-box;
+}
+
+/* On smaller screens (collapsed sidebar) */
+@media (max-width: 1024px) {
+  .history-wrap {
+    margin-left: 0;
+    padding: 20px;
+  }
+}
+
+/* Ensure table container doesn’t hide under header */
+.history-wrap > div:first-child {
+  scroll-margin-top: 80px;
+}
+
     </style>
 <div class="history-wrap">
   <div class="history-head">

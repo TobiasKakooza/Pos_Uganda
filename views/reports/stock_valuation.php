@@ -29,10 +29,398 @@ if (!isset($embed)) {
   .val-table th{background:#f3f4f6;padding:10px;text-align:left;border-bottom:1px solid #e5e7eb}
   .val-table td{padding:10px;border-top:1px solid #f1f5f9}
   .right{text-align:right}
+
+  /* ======================================================
+   STOCK VALUATION – ENTERPRISE THEME OVERRIDE
+   Light & Dark | No HTML / JS Changes
+====================================================== */
+
+/* ------------------------------------------------------
+   THEME TOKENS
+------------------------------------------------------ */
+body[data-theme="light"] {
+  --val-bg: #f4f6f9;
+  --val-panel: #ffffff;
+  --val-header: #ffffff;
+  --val-border: #e5e7eb;
+
+  --val-text: #0f172a;
+  --val-muted: #64748b;
+
+  --val-hover: #f1f5f9;
+}
+
+body[data-theme="dark"] {
+  --val-bg: #020617;
+  --val-panel: #0f172a;
+  --val-header: #020617;
+  --val-border: #1e293b;
+
+  --val-text: #e5e7eb;
+  --val-muted: #94a3b8;
+
+  --val-hover: #1e293b;
+}
+
+/* ======================================================
+   PAGE WRAPPER
+====================================================== */
+.val-wrap {
+  color: var(--val-text) !important;
+}
+
+/* ======================================================
+   HEADINGS
+====================================================== */
+.val-title,
+.val-wrap h1,
+.val-panel h3 {
+  color: var(--val-text) !important;
+  font-weight: 600;
+}
+
+/* ======================================================
+   FILTER BAR
+====================================================== */
+.val-filters {
+  background: var(--val-panel) !important;
+  border: 1px solid var(--val-border) !important;
+  border-radius: 14px;
+  padding: 12px;
+
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+}
+
+.val-filters input,
+.val-filters select {
+  background: var(--val-header) !important;
+  color: var(--val-text) !important;
+  border-color: var(--val-border) !important;
+}
+
+.val-filters input::placeholder {
+  color: var(--val-muted) !important;
+}
+
+.val-filters input:focus,
+.val-filters select:focus {
+  outline: none;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.val-filters label {
+  color: var(--val-muted) !important;
+}
+
+/* ======================================================
+   RUN / EXPORT BUTTONS
+====================================================== */
+.val-run {
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    color-mix(in srgb, var(--primary) 75%, black)
+  ) !important;
+
+  color: #fff !important;
+  border: none !important;
+
+  font-weight: 600;
+  border-radius: 999px;
+
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease,
+    opacity .15s ease;
+}
+
+.val-run:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+}
+
+/* ======================================================
+   KPI CARDS
+====================================================== */
+.val-card {
+  background: var(--val-panel) !important;
+  border-color: var(--val-border) !important;
+
+  border-radius: 16px;
+  box-shadow: 0 14px 40px rgba(0,0,0,.15);
+}
+
+.val-card small {
+  color: var(--val-muted) !important;
+}
+
+.val-card h2 {
+  color: var(--val-text) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ======================================================
+   CHART PANELS
+====================================================== */
+.val-panel {
+  background: var(--val-panel) !important;
+  border-color: var(--val-border) !important;
+
+  border-radius: 16px;
+  box-shadow: 0 14px 40px rgba(0,0,0,.15);
+}
+
+/* ======================================================
+   DATA TABLE
+====================================================== */
+.val-table {
+  background: var(--val-panel) !important;
+  border-color: var(--val-border) !important;
+
+  border-radius: 16px;
+  box-shadow: 0 16px 50px rgba(0,0,0,.16);
+}
+
+.val-table th {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--val-panel) 95%, black),
+    color-mix(in srgb, var(--val-panel) 90%, black)
+  ) !important;
+
+  color: var(--val-muted) !important;
+  border-bottom: 1px solid var(--val-border) !important;
+}
+
+.val-table td {
+  color: var(--val-text) !important;
+  border-top: 1px solid var(--val-border) !important;
+}
+
+.val-table tbody tr:hover {
+  background: var(--val-hover) !important;
+}
+
+/* Right-aligned numbers */
+.val-table .right {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ======================================================
+   CHART.JS COLOR FIX (LIGHT + DARK)
+====================================================== */
+body[data-theme="dark"] canvas {
+  filter: brightness(1.05) contrast(1.05);
+}
+
+body[data-theme="light"] canvas {
+  filter: none;
+}
+
+/* ======================================================
+   SCROLLBARS (WEBKIT)
+====================================================== */
+.val-table::-webkit-scrollbar {
+  height: 10px;
+}
+
+.val-table::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--val-border) 70%, black);
+  border-radius: 8px;
+}
+
+.val-table::-webkit-scrollbar-track {
+  background: transparent;
+}
+/* ======================================================
+   STOCK VALUATION – ADVANCED BUTTON SYSTEM
+====================================================== */
+
+/* Base button */
+.val-run {
+  position: relative;
+  isolation: isolate;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-height: 42px;
+  padding: 0 18px;
+
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .25px;
+
+  border-radius: 999px;
+  border: none;
+
+  cursor: pointer;
+  user-select: none;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--primary),
+      color-mix(in srgb, var(--primary) 70%, black)
+    ) !important;
+
+  color: #fff !important;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.18);
+
+  transition:
+    transform .18s cubic-bezier(.4,0,.2,1),
+    box-shadow .18s ease,
+    filter .18s ease;
+}
+
+/* Glow layer */
+.val-run::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--primary) 80%, white),
+      color-mix(in srgb, var(--primary) 60%, black)
+    );
+
+  opacity: 0;
+  border-radius: inherit;
+  filter: blur(10px);
+
+  transition: opacity .25s ease;
+}
+
+/* Hover */
+.val-run:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 18px 45px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.22);
+}
+
+.val-run:hover::before {
+  opacity: .85;
+}
+
+/* Active (press) */
+.val-run:active {
+  transform: translateY(0);
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.28),
+    inset 0 2px 6px rgba(0,0,0,.25);
+}
+
+/* Keyboard focus */
+.val-run:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent),
+    0 18px 45px rgba(0,0,0,.35);
+}
+
+/* Secondary appearance (Export CSV differentiation) */
+#export.val-run {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--primary) 55%, transparent),
+      color-mix(in srgb, var(--primary) 35%, black)
+    ) !important;
+
+  color: var(--val-text) !important;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+#export.val-run:hover {
+  filter: brightness(1.05);
+}
+
+/* ======================================================
+   CHECKBOX (INCLUDE ZERO STOCK)
+====================================================== */
+.val-filters label.chk {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  color: var(--val-muted) !important;
+  cursor: pointer;
+}
+
+/* Custom checkbox */
+.val-filters label.chk input {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+
+  border-radius: 6px;
+  border: 1.5px solid var(--val-border);
+
+  background: var(--val-header);
+  cursor: pointer;
+
+  display: grid;
+  place-items: center;
+
+  transition: all .18s ease;
+}
+
+.val-filters label.chk input::before {
+  content: "✓";
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  opacity: 0;
+  transform: scale(.6);
+  transition: all .15s ease;
+}
+
+.val-filters label.chk input:checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.val-filters label.chk input:checked::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.val-filters label.chk input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+/* ======================================================
+   MOTION SAFETY
+====================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .val-run,
+  .val-run::before,
+  .val-filters label.chk input {
+    transition: none !important;
+  }
+}
+
 </style>
 
 <div class="val-wrap">
-  <h1 class="val-title">💰 Stock Valuation</h1>
+  <h1 class="val-title">Stock Valuation</h1>
 
   <div class="val-filters">
     <input id="q" placeholder="Search name or SKU">

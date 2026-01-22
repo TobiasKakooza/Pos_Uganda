@@ -138,6 +138,12 @@ function loadPanel(action) {
       panel.innerHTML = html;
       panel.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
+
+
+       // 🔥 FORCE lucide to re-scan injected HTML
+    if (window.lucide) {
+      lucide.createIcons();
+    }
     });
 }
 
@@ -523,216 +529,907 @@ document.getElementById('searchInput').addEventListener('input', function () {
 
 <!-- Styles -->
 <style>
+/* ======================================================
+   PRODUCTS LIST – ENTERPRISE DESIGN SYSTEM
+   (Light & Dark | No JS Changes | No HTML Changes)
+====================================================== */
+
+/* -----------------------------
+   BASE SAFETY
+----------------------------- */
 body {
   overflow-x: hidden;
 }
 
 .content-area {
-  margin-left: 240px;
-  margin-top: 80px;
-  padding: 1rem;
   display: flex;
   flex-direction: column;
 }
 
+/* ======================================================
+   TOP ACTION BAR
+====================================================== */
 .topbar {
-  background: #0d47a1;
-  color: white;
-  padding: 10px;
+  position: sticky;
+  top: 64px;
+  z-index: 60;
+
   display: flex;
   align-items: center;
-  gap: 10px;
-  position: sticky;
-  top: 60px;
-  z-index: 50;
+  gap: 12px;
+
+  padding: 12px 16px;
+
+  background: var(--bg-header);
+  color: var(--text-main);
+
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
 }
 
-.topbar input {
-  padding: 5px;
-  border-radius: 4px;
+/* Buttons */
+.topbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  height: 42px;
+  padding: 0 16px;
+
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    color-mix(in srgb, var(--primary) 70%, black)
+  );
+
+  color: #fff;
   border: none;
+  border-radius: 999px;
+
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .2px;
+
+  cursor: pointer;
+
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease,
+    opacity .15s ease;
 }
 
+.topbar button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+}
+
+.topbar button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+/* Search Input */
+.topbar input {
+  margin-left: auto;
+  height: 38px;
+  padding: 0 14px;
+
+  background: color-mix(in srgb, var(--bg-panel) 92%, black);
+  color: var(--text-main);
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  font-size: 14px;
+}
+
+.topbar input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ======================================================
+   MAIN TABLE CONTAINER
+====================================================== */
+.main-table {
+  margin-top: 16px;
+  padding-bottom: 80px;
+}
+
+/* ======================================================
+   PRODUCT TABLE
+====================================================== */
+.main-table table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+
+  overflow: hidden;
+  box-shadow: 0 16px 50px rgba(0,0,0,.12);
+}
+
+/* Table Head */
+.main-table th {
+  padding: 14px 14px;
+
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-panel) 95%, black),
+    color-mix(in srgb, var(--bg-panel) 90%, black)
+  );
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Table Body */
+.main-table td {
+  padding: 14px 14px;
+  font-size: 14px;
+  color: var(--text-main);
+
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.main-table tbody tr {
+  transition: background .15s ease;
+}
+
+.main-table tbody tr:hover {
+  background: var(--bg-hover);
+}
+
+/* Last row cleanup */
+.main-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ======================================================
+   PAGINATION
+====================================================== */
+.main-table a {
+  display: inline-block;
+  margin: 6px 4px;
+  padding: 6px 14px;
+
+  border-radius: 999px;
+  text-decoration: none;
+
+  background: color-mix(in srgb, var(--bg-panel) 90%, black);
+  color: var(--text-main);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  border: 1px solid var(--border);
+  transition: all .15s ease;
+}
+
+.main-table a:hover {
+  background: var(--bg-hover);
+}
+
+.main-table a[style*="bold"] {
+  background: var(--primary);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ======================================================
+   SLIDE-IN RIGHT PANEL
+====================================================== */
 .side-panel {
   position: fixed;
-  top: 100px;
+  top: 64px;
   right: 0;
+
   width: 480px;
   max-width: 100%;
-  height: calc(100% - 100px);
-  background: #ffffff;
-  box-shadow: -2px 0 10px rgba(0,0,0,0.15);
-  overflow-y: auto; /* ✅ Ensure this is present */
+  height: calc(100% - 64px);
+
+  background: var(--bg-panel);
+  color: var(--text-main);
+
+  border-left: 1px solid var(--border);
+  box-shadow: -24px 0 80px rgba(0,0,0,.45);
+
+  padding: 22px;
+  overflow-y: auto;
   overflow-x: hidden;
-  padding: 20px;
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+
+  z-index: 1000;
+
+  transform: translateX(100%);
+  opacity: 0;
+
+  transition:
+    transform .35s cubic-bezier(.4,0,.2,1),
+    opacity .25s ease;
 }
 
+.side-panel:not(.hidden) {
+  transform: translateX(0);
+  opacity: 1;
+}
 
 .side-panel.hidden {
-  display: none;
+  pointer-events: none;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0%);
-    opacity: 1;
-  }
-}
+/* ======================================================
+   PANEL HEADINGS
+====================================================== */
+.side-panel h2,
+.side-panel h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 16px;
 
-.side-panel h2 {
-  font-size: 20px;
-  color: #0d47a1;
-  margin-bottom: 15px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+/* ======================================================
+   PANEL FORMS
+====================================================== */
 .side-panel form {
   display: flex;
   flex-direction: column;
+  gap: 12px;
 }
 
-.side-panel form input,
-.side-panel form select,
-.side-panel form button {
-  width: 100%;
-  padding: 12px 10px;
-  margin-bottom: 14px;
+.side-panel input,
+.side-panel select,
+.side-panel textarea {
+  background: color-mix(in srgb, var(--bg-panel) 92%, black);
+  color: var(--text-main);
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  padding: 12px;
   font-size: 14px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
 }
 
-.side-panel form input:focus,
-.side-panel form select:focus {
-  border-color: #1e88e5;
+.side-panel input::placeholder {
+  color: var(--text-muted);
+}
+
+.side-panel input:focus,
+.side-panel select:focus,
+.side-panel textarea:focus {
   outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
+/* Panel Buttons */
 .side-panel form button {
-  background-color: #0d47a1;
-  color: white;
-  font-weight: bold;
+  height: 44px;
+
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    color-mix(in srgb, var(--primary) 75%, black)
+  );
+
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: transform .15s ease, box-shadow .15s ease;
 }
 
 .side-panel form button:hover {
-  background-color: #1565c0;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 36px rgba(0,0,0,.35);
 }
 
+/* ======================================================
+   PANEL CLOSE BUTTON
+====================================================== */
 .side-panel .close-btn {
-  align-self: flex-end;
-  font-size: 20px;
-  border: none;
-  background: none;
-  color: #333;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+
+  width: 36px;
+  height: 36px;
+
+  display: grid;
+  place-items: center;
+
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+
+  color: var(--text-muted);
   cursor: pointer;
-  margin-bottom: -10px;
+
+  transition: all .2s ease;
 }
 
-.main-table {
-  margin-top: 1rem;
-  min-height: 400px;
-  padding-bottom: 60px;
+.side-panel .close-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
 }
 
-/* Topbar Button Styling */
-.topbar button {
-  background: #1565c0;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.3s;
-}
-.topbar button:hover {
-  background: #1976d2;
-}
-.topbar button:disabled {
-  background: #90caf9;
-  cursor: not-allowed;
+.side-panel .close-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.5;
 }
 
-/* Product Table Styling */
-.main-table table {
-  border-collapse: collapse;
-  width: 100%;
-  background: white;
-  border: 1px solid #ddd;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.main-table th,
-.main-table td {
-  text-align: left;
-  padding: 12px 10px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.main-table th {
-  background: #f5f5f5;
-  font-weight: 600;
-}
-
-.main-table tr:hover {
-  background-color: #f0f8ff;
-}
-
-/* Pagination Links */
-.main-table a {
-  margin: 0 5px;
-  padding: 6px 12px;
-  border-radius: 4px;
-  text-decoration: none;
-  color: #0d47a1;
-  background-color: #e3f2fd;
-  font-weight: 500;
-}
-.main-table a[style*="bold"] {
-  background-color: #0d47a1;
-  color: white;
-}
-
-/* Flash Message (if needed in future) */
+/* ======================================================
+   FLASH MESSAGES
+====================================================== */
 .flash-message {
-  margin: 10px 0;
-  padding: 12px 16px;
-  border-radius: 5px;
-  font-weight: bold;
+  background: var(--bg-panel);
+  color: var(--text-main);
+
+  border: 1px solid var(--border);
+  border-radius: 14px;
+
+  padding: 14px 18px;
+  margin-bottom: 16px;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-.flash-message.success {
-  background: #e8f5e9;
-  color: #2e7d32;
-  border: 1px solid #81c784;
-}
-.flash-message.error {
-  background: #ffebee;
-  color: #c62828;
-  border: 1px solid #ef9a9a;
-}
-.flash-message button {
-  background: transparent;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  color: inherit;
+
+  box-shadow: 0 12px 40px rgba(0,0,0,.18);
 }
 
+.flash-message button {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 18px;
+  cursor: pointer;
+}
+/* ======================================================
+   PRODUCTS LIST – THEME OVERRIDE LAYER
+   (Fixes table + side panel mismatch)
+====================================================== */
+
+/* ------------------------------------------------------
+   LIGHT MODE – FORCE CLEAN, NEUTRAL UI
+------------------------------------------------------ */
+body[data-theme="light"] {
+
+  --prod-bg: #f4f6f9;
+  --prod-panel: #ffffff;
+  --prod-header: #ffffff;
+  --prod-border: #e5e7eb;
+
+  --prod-text: #0f172a;
+  --prod-muted: #64748b;
+
+  --prod-hover: #f1f5f9;
+}
+
+/* ------------------------------------------------------
+   DARK MODE – FORCE TRUE DARK UI
+------------------------------------------------------ */
+body[data-theme="dark"] {
+
+  --prod-bg: #020617;
+  --prod-panel: #0f172a;
+  --prod-header: #020617;
+  --prod-border: #1e293b;
+
+  --prod-text: #e5e7eb;
+  --prod-muted: #94a3b8;
+
+  --prod-hover: #1e293b;
+}
+
+/* ======================================================
+   APPLY OVERRIDES (TABLE)
+====================================================== */
+body[data-theme] .main-table table {
+  background: var(--prod-panel) !important;
+  border-color: var(--prod-border) !important;
+}
+
+body[data-theme] .main-table th {
+  background: var(--prod-header) !important;
+  color: var(--prod-muted) !important;
+  border-bottom: 1px solid var(--prod-border) !important;
+}
+
+body[data-theme] .main-table td {
+  color: var(--prod-text) !important;
+  border-bottom: 1px solid var(--prod-border) !important;
+}
+
+body[data-theme] .main-table tbody tr:hover {
+  background: var(--prod-hover) !important;
+}
+
+/* ======================================================
+   APPLY OVERRIDES (TOPBAR)
+====================================================== */
+body[data-theme] .topbar {
+  background: var(--prod-header) !important;
+  color: var(--prod-text) !important;
+  border-bottom: 1px solid var(--prod-border) !important;
+}
+
+body[data-theme] .topbar input {
+  background: var(--prod-panel) !important;
+  color: var(--prod-text) !important;
+  border-color: var(--prod-border) !important;
+}
+
+/* ======================================================
+   APPLY OVERRIDES (SLIDE-IN PANEL)
+====================================================== */
+body[data-theme] .side-panel {
+  background: var(--prod-panel) !important;
+  color: var(--prod-text) !important;
+  border-left: 1px solid var(--prod-border) !important;
+}
+
+body[data-theme] .side-panel h2,
+body[data-theme] .side-panel h3 {
+  color: var(--prod-text) !important;
+}
+
+body[data-theme] .side-panel input,
+body[data-theme] .side-panel select,
+body[data-theme] .side-panel textarea {
+  background: var(--prod-header) !important;
+  color: var(--prod-text) !important;
+  border-color: var(--prod-border) !important;
+}
+
+body[data-theme] .side-panel input::placeholder {
+  color: var(--prod-muted) !important;
+}
+
+/* ======================================================
+   CLOSE BUTTON – CONSISTENT IN BOTH MODES
+====================================================== */
+body[data-theme] .side-panel .close-btn {
+  border-color: var(--prod-border) !important;
+  color: var(--prod-muted) !important;
+}
+
+body[data-theme] .side-panel .close-btn:hover {
+  background: var(--prod-hover) !important;
+  color: var(--prod-text) !important;
+}
+
+/* ======================================================
+   PAGINATION FIX
+====================================================== */
+body[data-theme] .main-table a {
+  background: var(--prod-panel) !important;
+  color: var(--prod-text) !important;
+  border-color: var(--prod-border) !important;
+}
+
+body[data-theme] .main-table a:hover {
+  background: var(--prod-hover) !important;
+}
+
+body[data-theme] .main-table a[style*="bold"] {
+  background: var(--primary) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+/* ======================================================
+   FINAL POLISH LAYER – BUTTONS & LIGHT MODE
+   (Safe override – paste at the VERY BOTTOM)
+====================================================== */
+
+/* ------------------------------------------------------
+   LIGHT MODE – VISUAL BALANCE (NOT PURE WHITE)
+------------------------------------------------------ */
+body[data-theme="light"] {
+  --lm-bg: #f6f8fb;
+  --lm-panel: #ffffff;
+  --lm-header: #f9fafb;
+
+  --lm-border: #dce1ea;
+
+  --lm-text: #0f172a;
+  --lm-muted: #5b6b82;
+
+  --lm-hover: #eef2f7;
+}
+
+/* Apply to page background */
+body[data-theme="light"] main {
+  background: var(--lm-bg);
+}
+
+/* ------------------------------------------------------
+   TOPBAR (LIGHT MODE REFINEMENT)
+------------------------------------------------------ */
+body[data-theme="light"] .topbar {
+  background: var(--lm-header) !important;
+  border-bottom: 1px solid var(--lm-border) !important;
+}
+
+/* ------------------------------------------------------
+   BUTTON SYSTEM (ENTERPRISE-GRADE)
+------------------------------------------------------ */
+.topbar button {
+  position: relative;
+  isolation: isolate;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 0 18px;
+  height: 44px;
+
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+
+  letter-spacing: .2px;
+}
+
+/* Icon sizing */
+.topbar button svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.2;
+}
+
+/* PRIMARY (New / Edit / Manage) */
+.topbar button:not(:disabled) {
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    color-mix(in srgb, var(--primary) 70%, black)
+  );
+  box-shadow: 0 6px 16px rgba(0,0,0,.15);
+}
+
+/* Hover */
+.topbar button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 34px rgba(0,0,0,.25);
+}
+
+/* Active */
+.topbar button:not(:disabled):active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+}
+
+/* DISABLED */
+.topbar button:disabled {
+  background: #cbd5e1 !important;
+  color: #64748b !important;
+  box-shadow: none !important;
+}
+
+/* ------------------------------------------------------
+   DELETE BUTTON – DANGER SIGNAL
+------------------------------------------------------ */
+#deleteBtn:not(:disabled) {
+  background: linear-gradient(135deg, #ef4444, #b91c1c) !important;
+}
+
+#deleteBtn:not(:disabled):hover {
+  box-shadow: 0 14px 34px rgba(239,68,68,.35);
+}
+
+/* ------------------------------------------------------
+   TABLE – LIGHT MODE READABILITY
+------------------------------------------------------ */
+body[data-theme="light"] .main-table table {
+  background: var(--lm-panel) !important;
+  border-color: var(--lm-border) !important;
+}
+
+body[data-theme="light"] .main-table th {
+  background: var(--lm-header) !important;
+  color: var(--lm-muted) !important;
+  border-bottom: 1px solid var(--lm-border) !important;
+}
+
+body[data-theme="light"] .main-table td {
+  color: var(--lm-text) !important;
+  border-bottom: 1px solid var(--lm-border) !important;
+}
+
+/* Hover rows */
+body[data-theme="light"] .main-table tbody tr:hover {
+  background: var(--lm-hover) !important;
+}
+
+/* ------------------------------------------------------
+   PRICE EMPHASIS
+------------------------------------------------------ */
+.main-table td strong {
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+/* ------------------------------------------------------
+   LUCIDE ICON COLOR TUNING
+------------------------------------------------------ */
+body[data-theme="light"] .main-table svg {
+  color: #334155;
+}
+
+body[data-theme="dark"] .main-table svg {
+  color: #cbd5e1;
+}
+
+/* ------------------------------------------------------
+   SIDE PANEL – LIGHT MODE CLEAN LOOK
+------------------------------------------------------ */
+body[data-theme="light"] .side-panel {
+  background: var(--lm-panel) !important;
+  border-left: 1px solid var(--lm-border) !important;
+}
+
+body[data-theme="light"] .side-panel input,
+body[data-theme="light"] .side-panel select,
+body[data-theme="light"] .side-panel textarea {
+  background: #f8fafc !important;
+  border-color: var(--lm-border) !important;
+}
+
+/* ------------------------------------------------------
+   CLOSE BUTTON – SUBTLE & MODERN
+------------------------------------------------------ */
+body[data-theme="light"] .side-panel .close-btn {
+  background: #f1f5f9 !important;
+}
+
+body[data-theme="light"] .side-panel .close-btn:hover {
+  background: #e2e8f0 !important;
+}
+/* ======================================================
+   ENTERPRISE BUTTON SYSTEM
+   Light & Dark | Animated | No HTML changes
+====================================================== */
+
+/* ------------------------------------------------------
+   BASE BUTTON RESET
+------------------------------------------------------ */
+.topbar button {
+  position: relative;
+  isolation: isolate;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  height: 44px;
+  padding: 0 18px;
+
+  border-radius: 14px;
+  border: none;
+
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .25px;
+
+  cursor: pointer;
+  overflow: hidden;
+
+  transition:
+    transform .18s cubic-bezier(.4,0,.2,1),
+    box-shadow .18s ease,
+    background .18s ease,
+    color .18s ease,
+    opacity .18s ease;
+}
+
+/* Icon sizing */
+.topbar button svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.2;
+}
+
+/* ------------------------------------------------------
+   LIGHT MODE – BUTTON COLORS
+------------------------------------------------------ */
+body[data-theme="light"] .topbar button:not(:disabled) {
+  background: linear-gradient(
+    135deg,
+    #2563eb,
+    #1d4ed8
+  );
+  color: #ffffff;
+
+  box-shadow:
+    0 6px 16px rgba(37,99,235,.25),
+    inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+/* ------------------------------------------------------
+   DARK MODE – BUTTON COLORS
+------------------------------------------------------ */
+body[data-theme="dark"] .topbar button:not(:disabled) {
+  background: linear-gradient(
+    135deg,
+    #3b82f6,
+    #1e40af
+  );
+  color: #ffffff;
+
+  box-shadow:
+    0 6px 20px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+/* ------------------------------------------------------
+   SHINE EFFECT (SUBTLE)
+------------------------------------------------------ */
+.topbar button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(255,255,255,.35),
+    transparent 70%
+  );
+
+  transform: translateX(-120%);
+  transition: transform .6s ease;
+}
+
+.topbar button:hover::before {
+  transform: translateX(120%);
+}
+
+/* ------------------------------------------------------
+   HOVER – LIFT + GLOW
+------------------------------------------------------ */
+.topbar button:not(:disabled):hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+/* ------------------------------------------------------
+   ACTIVE – PRESS EFFECT
+------------------------------------------------------ */
+.topbar button:not(:disabled):active {
+  transform: translateY(0);
+
+  box-shadow:
+    0 6px 14px rgba(0,0,0,.35),
+    inset 0 3px 6px rgba(0,0,0,.35);
+}
+
+/* ------------------------------------------------------
+   FOCUS – ACCESSIBLE RING
+------------------------------------------------------ */
+.topbar button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(59,130,246,.45),
+    0 12px 32px rgba(0,0,0,.35);
+}
+
+/* ------------------------------------------------------
+   DISABLED STATE – CLEAR BUT ELEGANT
+------------------------------------------------------ */
+.topbar button:disabled {
+  background: #cbd5e1 !important;
+  color: #64748b !important;
+
+  box-shadow: none !important;
+  cursor: not-allowed;
+
+  opacity: .7;
+}
+
+body[data-theme="dark"] .topbar button:disabled {
+  background: #1e293b !important;
+  color: #64748b !important;
+}
+
+/* ------------------------------------------------------
+   DANGER BUTTON (DELETE)
+------------------------------------------------------ */
+#deleteBtn:not(:disabled) {
+  background: linear-gradient(
+    135deg,
+    #ef4444,
+    #b91c1c
+  ) !important;
+
+  box-shadow:
+    0 6px 18px rgba(239,68,68,.35),
+    inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+#deleteBtn:not(:disabled):hover {
+  box-shadow:
+    0 20px 44px rgba(239,68,68,.45),
+    inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+/* ------------------------------------------------------
+   ICON COLOR SYNC
+------------------------------------------------------ */
+.topbar button svg {
+  color: currentColor;
+}
+
+/* ------------------------------------------------------
+   SUBTLE TEXT SMOOTHING
+------------------------------------------------------ */
+.topbar button {
+  -webkit-font-smoothing: antialiased;
+}
+/* ======================================================
+   PRODUCTS LIST VISIBILITY FIX
+   (Fix hidden Product List under sticky topbar)
+====================================================== */
+
+/* Ensure content starts BELOW the sticky topbar */
+.main-table {
+  margin-top: 88px !important; /* 64px topbar + spacing */
+}
+
+/* Prevent sticky bar from overlapping content */
+.topbar {
+  position: sticky;
+  top: 64px;
+}
+
+/* Make sure content-area does not collapse */
+.content-area {
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure table is above background layers */
+.main-table {
+  position: relative;
+  z-index: 2;
+}
+
+/* Remove excessive left squeeze from global layout */
+.main-table,
+.content-area {
+  max-width: 100%;
+  padding-left: 0;
+}
+
+/* If sidebar padding exists, neutralize it for products page */
+body:has(.main-table) .dashboard-content,
+body:has(.main-table) main {
+  padding-left: 0 !important;
+}
+
+/* Defensive: prevent clipping */
+.main-table table {
+  overflow: visible;
+}
 
 </style>
 

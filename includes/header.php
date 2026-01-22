@@ -56,7 +56,7 @@ $avatar = $user['avatar'] ?? '/POS_UG/assets/images/avatar-default.png';
 /* =====================================================
    DARK HEADER – NOTIFICATIONS + PROFILE
 ===================================================== */
-:root {
+/* :root {
   --bg-header: #020617;
   --bg-panel: #0f172a;
   --bg-hover: #1e293b;
@@ -64,15 +64,16 @@ $avatar = $user['avatar'] ?? '/POS_UG/assets/images/avatar-default.png';
   --text-main: #e5e7eb;
   --text-muted: #94a3b8;
   --danger: #ef4444;
-}
+} */
 
 /* ===== HEADER ===== */
 header {
   position: fixed;
   inset: 0 0 auto 0;
   height: 64px;
-  background: linear-gradient(180deg, #020617, #020617);
-  border-bottom: 1px solid var(--border);
+   background: var(--bg-header);
+   border-bottom: 1px solid var(--border);
+   color: var(--text-main);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -205,10 +206,10 @@ header {
 /* ===== MAIN OFFSET ===== */
 main {
   margin-left: 220px;
-  margin-top: 64px;
+  margin-top: 0px;
   padding: 24px;
   min-height: calc(100vh - 64px);
-  background: #f4f6f9; /* LIGHT */
+  background: var(--bg-app);
 }
 
 
@@ -248,11 +249,29 @@ main {
 .header-actions {
   margin-left: auto;
 }
+/* 🌞 LIGHT MODE */
+body[data-theme="light"] {
+  --bg-header: #ffffff;
+  --bg-hover: #f1f5f9;
+  --border: #e5e7eb;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+}
+
+/* 🌙 DARK MODE */
+body[data-theme="dark"] {
+  --bg-header: #020617;
+  --bg-hover: #1e293b;
+  --border: #1e293b;
+  --text-main: #e5e7eb;
+  --text-muted: #94a3b8;
+}
 
 </style>
 </head>
 
-<body>
+<body data-theme="light">
+
 
 <header>
 
@@ -261,6 +280,9 @@ main {
   <span class="app-name">Toby POS</span>
 </div>
 
+<button id="themeToggle" class="btn ghost">
+  <i data-lucide="moon"></i>
+</button>
 
   <div class="header-actions">
 
@@ -393,6 +415,33 @@ document.addEventListener('click', () => {
 <script>
   lucide.createIcons();
 </script>
+<script>
+(function () {
+  const key = 'pos-theme';
+  const body = document.body;
+  const btn = document.getElementById('themeToggle');
+  const icon = btn?.querySelector('i');
+
+  const saved = localStorage.getItem(key) || 'light';
+  body.dataset.theme = saved;
+  updateIcon(saved);
+
+  btn?.addEventListener('click', () => {
+    const next = body.dataset.theme === 'dark' ? 'light' : 'dark';
+    body.dataset.theme = next;
+    localStorage.setItem(key, next);
+    updateIcon(next);
+  });
+
+  function updateIcon(theme) {
+    if (!icon) return;
+    icon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+    lucide.createIcons();
+  }
+})();
+</script>
+
+
 <script>
 let activeNotifId = null;
 

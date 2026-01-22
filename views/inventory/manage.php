@@ -49,33 +49,51 @@ $stmt = $pdo->query("
 ");
 $products = $stmt->fetchAll();
 ?>
-
 <div class="container">
-    <h2>📦 Inventory Management</h2>
+    <h2 class="page-title">
+        <i data-lucide="boxes"></i>
+        Inventory Management
+    </h2>
 
     <?php if (isset($_SESSION['success'])): ?>
-        <div class="alert success"><?= $_SESSION['success'] ?></div>
+        <div class="alert success">
+            <i data-lucide="check-circle"></i>
+            <?= $_SESSION['success'] ?>
+        </div>
         <?php unset($_SESSION['success']); ?>
     <?php endif; ?>
 
     <?php if (isset($_SESSION['error'])): ?>
-        <div class="alert error"><?= $_SESSION['error'] ?></div>
+        <div class="alert error">
+            <i data-lucide="alert-triangle"></i>
+            <?= $_SESSION['error'] ?>
+        </div>
         <?php unset($_SESSION['error']); ?>
     <?php endif; ?>
 
     <form method="POST" action="../../controllers/inventoryController.php" class="inventory-form">
+
         <div class="form-group">
-            <label for="product_id">Product:</label>
+            <label for="product_id">
+                <i data-lucide="package"></i>
+                Product
+            </label>
             <select name="product_id" id="product_id" style="width:100%;" required></select>
         </div>
 
         <div class="form-group">
-            <label for="quantity">Quantity:</label>
+            <label for="quantity">
+                <i data-lucide="hash"></i>
+                Quantity
+            </label>
             <input type="number" name="quantity" id="quantity" min="1" required>
         </div>
 
         <div class="form-group">
-            <label for="type">Type:</label>
+            <label for="type">
+                <i data-lucide="repeat"></i>
+                Type
+            </label>
             <select name="type" id="type" required>
                 <option value="in">Stock In</option>
                 <option value="out">Stock Out</option>
@@ -83,11 +101,18 @@ $products = $stmt->fetchAll();
         </div>
 
         <div class="form-group">
-            <label for="note">Note:</label>
+            <label for="note">
+                <i data-lucide="sticky-note"></i>
+                Note
+            </label>
             <textarea name="note" id="note" placeholder="Optional note..."></textarea>
         </div>
 
-        <button type="submit" name="inventory_submit">✅ Save Entry</button>
+        <button type="submit" name="inventory_submit" class="btn-primary">
+            <i data-lucide="save"></i>
+            Save Entry
+        </button>
+
     </form>
 </div>
 
@@ -115,6 +140,10 @@ $(document).ready(function() {
         minimumInputLength: 1
     });
 });
+</script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  lucide.createIcons();
 </script>
 
 <?php include('../../includes/footer.php'); ?>

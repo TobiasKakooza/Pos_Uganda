@@ -3,13 +3,18 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+
+
 // If $embed is NOT set, render as a full page
 $standalone = !isset($embed);
 
 if ($standalone) {
   require_once __DIR__ . '/../../includes/auth.php';
+  require_once __DIR__ . '/../../includes/header.php';
+  // header.php already includes navbar.php
   require_once __DIR__ . '/../../config/db.php';
 }
+
 
 // Fetch suppliers
 $sql = "
@@ -343,11 +348,263 @@ body      { background: var(--bg); }
   .sup-btn, .sup-table tbody tr, .sup-close { transition: none; }
 }
 
+/* ======================================================
+   SUPPLIERS – ENTERPRISE THEME OVERRIDE
+   Light & Dark | No HTML / JS Changes
+====================================================== */
+
+/* ------------------------------------------------------
+   THEME TOKENS
+------------------------------------------------------ */
+body[data-theme="light"] {
+  --sup-bg: #f4f6f9;
+  --sup-panel: #ffffff;
+  --sup-header: #ffffff;
+  --sup-border: #e5e7eb;
+
+  --sup-text: #0f172a;
+  --sup-muted: #64748b;
+
+  --sup-hover: #f1f5f9;
+}
+
+body[data-theme="dark"] {
+  --sup-bg: #020617;
+  --sup-panel: #0f172a;
+  --sup-header: #020617;
+  --sup-border: #1e293b;
+
+  --sup-text: #e5e7eb;
+  --sup-muted: #94a3b8;
+
+  --sup-hover: #1e293b;
+}
+
+/* ======================================================
+   PAGE WRAPPER
+====================================================== */
+.sup-wrap {
+  color: var(--sup-text) !important;
+}
+
+/* ======================================================
+   HEADINGS
+====================================================== */
+.sup-wrap h1,
+.sup-title {
+  color: var(--sup-text) !important;
+  font-weight: 600;
+}
+
+/* ======================================================
+   ACTION BUTTONS (TOP + TABLE)
+====================================================== */
+.sup-btn {
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    color-mix(in srgb, var(--primary) 75%, black)
+  ) !important;
+
+  color: #fff !important;
+  border: none !important;
+
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease,
+    opacity .15s ease;
+}
+
+.sup-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+}
+
+.sup-btn.secondary {
+  background: var(--sup-panel) !important;
+  color: var(--sup-text) !important;
+  border: 1px solid var(--sup-border) !important;
+}
+
+.sup-btn.secondary:hover {
+  background: var(--sup-hover) !important;
+}
+
+/* ======================================================
+   FILTER BAR
+====================================================== */
+.sup-filters {
+  background: var(--sup-panel) !important;
+  border: 1px solid var(--sup-border) !important;
+  border-radius: 14px;
+  padding: 12px;
+
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+}
+
+.sup-input,
+.sup-select {
+  background: var(--sup-header) !important;
+  color: var(--sup-text) !important;
+  border-color: var(--sup-border) !important;
+}
+
+.sup-input::placeholder {
+  color: var(--sup-muted) !important;
+}
+
+.sup-input:focus,
+.sup-select:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+/* ======================================================
+   SUPPLIERS TABLE
+====================================================== */
+.sup-table {
+  background: var(--sup-panel) !important;
+  border-color: var(--sup-border) !important;
+  box-shadow: 0 16px 50px rgba(0,0,0,.16);
+}
+
+.sup-table thead th {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--sup-panel) 95%, black),
+    color-mix(in srgb, var(--sup-panel) 90%, black)
+  ) !important;
+
+  color: var(--sup-muted) !important;
+  border-bottom: 1px solid var(--sup-border) !important;
+}
+
+.sup-table tbody td {
+  color: var(--sup-text) !important;
+  border-top: 1px solid var(--sup-border) !important;
+}
+
+.sup-table tbody tr:hover {
+  background: var(--sup-hover) !important;
+}
+
+/* Right-aligned numbers */
+.sup-right {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ======================================================
+   SUPPLIER LINKS
+====================================================== */
+.sup-link {
+  color: var(--primary) !important;
+  font-weight: 500;
+}
+
+.sup-link:hover {
+  opacity: .9;
+}
+
+/* ======================================================
+   STATUS PILLS
+====================================================== */
+.sup-pill.ok {
+  background: rgba(16,185,129,.15) !important;
+  color: #10b981 !important;
+  border: 1px solid rgba(16,185,129,.35) !important;
+}
+
+.sup-pill.blocked {
+  background: rgba(239,68,68,.15) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239,68,68,.35) !important;
+}
+
+/* ======================================================
+   MODAL OVERLAY
+====================================================== */
+.sup-modal {
+  background:
+    radial-gradient(
+      1200px 800px at 70% -10%,
+      color-mix(in srgb, var(--primary) 18%, transparent),
+      transparent 50%
+    ),
+    rgba(0,0,0,.65) !important;
+}
+
+/* Modal card */
+.sup-modal-card {
+  background: var(--sup-panel) !important;
+  border-color: var(--sup-border) !important;
+  color: var(--sup-text) !important;
+}
+
+/* Modal header/footer */
+.sup-modal-head,
+.sup-modal-foot {
+  background: var(--sup-header) !important;
+  border-color: var(--sup-border) !important;
+}
+
+/* Modal inputs */
+.sup-modal-body input,
+.sup-modal-body select,
+.sup-modal-body textarea {
+  background: var(--sup-header) !important;
+  color: var(--sup-text) !important;
+  border-color: var(--sup-border) !important;
+}
+
+.sup-modal-body input::placeholder {
+  color: var(--sup-muted) !important;
+}
+
+.sup-modal-body input:focus,
+.sup-modal-body select:focus,
+.sup-modal-body textarea:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+/* ======================================================
+   CLOSE BUTTON
+====================================================== */
+.sup-close {
+  background: transparent !important;
+  color: var(--sup-muted) !important;
+  border: 1px solid var(--sup-border) !important;
+}
+
+.sup-close:hover {
+  background: var(--sup-hover) !important;
+  color: var(--sup-text) !important;
+}
+
+/* ======================================================
+   SCROLLBARS (WEBKIT)
+====================================================== */
+.sup-table::-webkit-scrollbar,
+.sup-modal-card::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.sup-table::-webkit-scrollbar-thumb,
+.sup-modal-card::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--sup-border) 70%, black);
+  border-radius: 8px;
+}
+
+.sup-table::-webkit-scrollbar-track,
+.sup-modal-card::-webkit-scrollbar-track {
+  background: transparent;
+}
 
 </style>
 
 <div class="sup-wrap">
-  <h1>🏭 Suppliers</h1>
+  <h1> Suppliers</h1>
 
  <div class="sup-actions">
   <button class="sup-btn" id="btnSupNew">+ New Supplier</button>

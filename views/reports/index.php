@@ -55,7 +55,7 @@ $monthStart = date('Y-m-01');
 </style>
 
 <div class="rp-wrap">
-  <h1 class="rp-title">📊 Reports</h1>
+  <h1 class="rp-title"> Reports</h1>
 
   <!-- Filters -->
   <div class="rp-filters">

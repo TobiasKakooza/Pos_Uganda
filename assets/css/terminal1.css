@@ -1,0 +1,2524 @@
+/* Global Theme */
+body {
+  background: #1e1e1e;
+  color: #f0f0f0;
+  font-family: "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+.main-content-container {
+  display: flex;
+  height: calc(100vh - 120px); /* Adjust to your header/footer height */
+  overflow: hidden;
+}
+
+
+/* Layout Grid Structure */
+.sales-terminal {
+  display: grid;
+  grid-template-rows: auto 1fr auto; /* search, content, summary */
+  height: 100vh;
+  grid-template-columns: 1fr 420px; /* wide enough for all buttons */
+}
+/* LEFT SIDE */
+.left-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-right: 10px;
+}
+
+/* RIGHT SIDE */
+.right-panel {
+  width: 330px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.side-panel,
+.footer-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+/* Top Bar (Search) */
+.topbar {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #2c2c2c;
+  border-bottom: 1px solid #333;
+}
+
+.topbar input {
+  padding: 12px;
+  width: 100%;
+  border-radius: 3px;
+  border: none;
+  background: #1a1a1a;
+  color: #f5f5f5;
+  font-size: 16px;
+  outline: none;
+}
+
+.topbar button {
+  margin-left: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  border: none;
+  background: #0d47a1;
+  color: white;
+  font-weight: bold;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.topbar button:hover {
+  background: #1565c0;
+}
+
+/* Main Grid Content (Products + Side Panel) */
+.main-content {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 120px); /* Adjust based on header size */
+  overflow: hidden;
+}
+
+.main-left {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Product Area */
+
+
+.product-area {
+  flex-grow: 1;
+  overflow-y: auto;
+  background-color: #1e1e1e;
+  padding: 0 10px;
+}
+
+
+.sales-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sales-table thead {
+  background: #333;
+  color: #ccc;
+}
+
+.sales-table th,
+.sales-table td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+  font-size: 16px;
+}
+
+.sales-table tbody tr:hover {
+  background: #333;
+  cursor: pointer;
+}
+
+.center-text {
+  text-align: center;
+  color: #888;
+  padding: 20px;
+}
+
+/* Side Panel Buttons */
+.side-panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;
+  background: #1f1f1f;
+  border-left: 1px solid #333;
+  overflow-y: auto;
+}
+
+/* Grid for main button section */
+.side-panel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+/* Utility bottom buttons section */
+.footer-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+
+
+/* Button Styles */
+.wide-btn {
+  background-color: #333;
+  border: none;
+  color: white;
+  padding: 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.wide-btn:hover {
+  background-color: #444;
+}
+
+
+.btn-pay {
+  background: #2e7d32 !important;
+  color: white;
+}
+
+.btn-pay:hover {
+  background: #388e3c !important;
+}
+
+.btn-void {
+  background: #c62828 !important;
+  color: white;
+}
+
+.btn-void:hover {
+  background: #e53935 !important;
+}
+
+/* Summary Section */
+
+.summary-box {
+  background-color: #2a2a2a;
+  padding: 15px 25px;
+  border-top: 1px solid #444;
+  color: white;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
+}
+.summary-line.total {
+  font-weight: bold;
+  font-size: 18px;
+  color: #00ff00;
+}
+
+
+/* Optional Bottom Row with Extra Buttons */
+.footer-buttons {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  background: #1e1e1e;
+  border-top: 1px solid #333;
+}
+
+/* Pagination Styling */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  background: #1e1e1e;
+}
+
+.pagination button {
+  padding: 8px 12px;
+  font-size: 14px;
+  background: #2c2c2c;
+  color: #f0f0f0;
+  border: 1px solid #444;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.pagination button:hover {
+  background: #3a3a3a;
+}
+
+/* Admin Panel Slide-in */
+.toggle-admin {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: #333;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-size: 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 10003;  
+  
+}
+
+.toggle-admin:hover {
+  background: #555;
+}
+
+#adminPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100%;
+  background: #121212;
+  color: white;
+  padding: 20px;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  z-index: 1002;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#adminPanel.visible {
+  transform: translateX(0);
+}
+
+#adminPanel button {
+  margin-top: 10px;
+  padding: 12px;
+  background: #2a2a2a;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+#adminPanel button:hover {
+  background: #333;
+}
+
+#adminPanel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#adminPanel ul li {
+  padding: 12px;
+  border-bottom: 1px solid #333;
+  cursor: pointer;
+}
+
+#adminPanel ul li:hover {
+  background-color: #222;
+}
+
+.admin-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.close-admin {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.admin-date {
+  margin-top: auto;
+  padding-top: 15px;
+  font-size: 14px;
+  color: #888;
+}
+
+/* Scroll Utility */
+.scrollable {
+  overflow-y: auto;
+}
+
+/* Responsive Tweak (optional) */
+@media (max-width: 768px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+  .summary-box {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .side-panel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+/* Overlay for Payment Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Make modal visible when active */
+/* .modal-overlay.active {
+  display: flex;
+} */
+.payment-modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.payment-box {
+  background: #2c2c2c;
+  padding: 25px;
+  border-radius: 8px;
+  width: 400px;
+  box-shadow: 0 0 10px #000;
+}
+
+.payment-step {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.payment-modal.hidden {
+  display: none !important;
+}
+
+.method-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.method-buttons button {
+  padding: 12px;
+  font-size: 15px;
+  background: #424242;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.method-buttons button:hover {
+  background: #555;
+}
+
+.payment-inputs div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  padding: 8px 0;
+  color: #fff;
+}
+
+.payment-inputs input {
+  padding: 8px;
+  width: 150px;
+  background: #1a1a1a;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+}
+
+.payment-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn-cancel {
+  background: #b71c1c;
+  color: #fff;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-confirm {
+  background: #2e7d32;
+  color: #fff;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+.stock-label {
+  font-size: 0.8em;
+  color: #888;
+  margin-left: 4px;
+}
+.btn-remove {
+  background-color: #c62828;
+  border: none;
+  color: white;
+  font-size: 16px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn-remove:hover {
+  background-color: #e53935;
+}
+
+
+/* sales hisotry.php */
+/* Container */
+.history-container {
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 10px;
+    color: #f0f0f0;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+/* Title */
+.history-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #00d084;
+    border-bottom: 2px solid #00d084;
+    padding-bottom: 5px;
+}
+
+/* Table */
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.history-table thead {
+    background-color: #00d084;
+    color: #000;
+}
+
+.history-table thead th {
+    padding: 12px 10px;
+    font-weight: 600;
+    text-align: left;
+    font-size: 14px;
+}
+
+.history-table tbody tr {
+    transition: background 0.3s ease;
+}
+
+.history-table tbody tr:nth-child(even) {
+    background-color: #242424;
+}
+
+.history-table tbody tr:hover {
+    background-color: #333;
+}
+
+.history-table td {
+    padding: 10px;
+    font-size: 13px;
+    border-bottom: 1px solid #444;
+}
+
+/* Buttons */
+.btn-history {
+    background-color: #00d084;
+    color: #000;
+    border: none;
+    padding: 6px 14px;
+    font-size: 13px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-history:hover {
+    background-color: #00b06a;
+}
+
+/* Pagination */
+.history-pagination {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+.history-pagination button {
+    background: #333;
+    border: 1px solid #555;
+    color: #f0f0f0;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.history-pagination button.active {
+    background-color: #00d084;
+    color: #000;
+}
+
+.history-pagination button:hover {
+    background-color: #555;
+}
+/* Global Theme */
+body {
+  background: #1e1e1e;
+  color: #f0f0f0;
+  font-family: "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+.main-content-container {
+  display: flex;
+  height: calc(100vh - 120px); /* Adjust to your header/footer height */
+  overflow: hidden;
+}
+
+
+/* Layout Grid Structure */
+.sales-terminal {
+  display: grid;
+  grid-template-rows: auto 1fr auto; /* search, content, summary */
+  height: 100vh;
+  grid-template-columns: 1fr 420px; /* wide enough for all buttons */
+}
+/* LEFT SIDE */
+.left-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-right: 10px;
+}
+
+/* RIGHT SIDE */
+.right-panel {
+  width: 330px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.side-panel,
+.footer-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+/* Top Bar (Search) */
+.topbar {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #2c2c2c;
+  border-bottom: 1px solid #333;
+}
+
+.topbar input {
+  padding: 12px;
+  width: 100%;
+  border-radius: 3px;
+  border: none;
+  background: #1a1a1a;
+  color: #f5f5f5;
+  font-size: 16px;
+  outline: none;
+}
+
+.topbar button {
+  margin-left: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  border: none;
+  background: #0d47a1;
+  color: white;
+  font-weight: bold;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.topbar button:hover {
+  background: #1565c0;
+}
+
+/* Main Grid Content (Products + Side Panel) */
+.main-content {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 120px); /* Adjust based on header size */
+  overflow: hidden;
+}
+
+.main-left {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Product Area */
+
+
+.product-area {
+  flex-grow: 1;
+  overflow-y: auto;
+  background-color: #1e1e1e;
+  padding: 0 10px;
+}
+
+
+.sales-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sales-table thead {
+  background: #333;
+  color: #ccc;
+}
+
+.sales-table th,
+.sales-table td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+  font-size: 16px;
+}
+
+.sales-table tbody tr:hover {
+  background: #333;
+  cursor: pointer;
+}
+
+.center-text {
+  text-align: center;
+  color: #888;
+  padding: 20px;
+}
+
+/* Side Panel Buttons */
+.side-panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;
+  background: #1f1f1f;
+  border-left: 1px solid #333;
+  overflow-y: auto;
+}
+
+/* Grid for main button section */
+.side-panel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+/* Utility bottom buttons section */
+.footer-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+
+
+/* Button Styles */
+.wide-btn {
+  background-color: #333;
+  border: none;
+  color: white;
+  padding: 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.wide-btn:hover {
+  background-color: #444;
+}
+
+
+.btn-pay {
+  background: #2e7d32 !important;
+  color: white;
+}
+
+.btn-pay:hover {
+  background: #388e3c !important;
+}
+
+.btn-void {
+  background: #c62828 !important;
+  color: white;
+}
+
+.btn-void:hover {
+  background: #e53935 !important;
+}
+
+/* Summary Section */
+
+.summary-box {
+  background-color: #2a2a2a;
+  padding: 15px 25px;
+  border-top: 1px solid #444;
+  color: white;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
+}
+.summary-line.total {
+  font-weight: bold;
+  font-size: 18px;
+  color: #00ff00;
+}
+
+
+/* Optional Bottom Row with Extra Buttons */
+.footer-buttons {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  background: #1e1e1e;
+  border-top: 1px solid #333;
+}
+
+/* Pagination Styling */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  background: #1e1e1e;
+}
+
+.pagination button {
+  padding: 8px 12px;
+  font-size: 14px;
+  background: #2c2c2c;
+  color: #f0f0f0;
+  border: 1px solid #444;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.pagination button:hover {
+  background: #3a3a3a;
+}
+
+/* Admin Panel Slide-in */
+.toggle-admin {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: #333;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-size: 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 10003;  
+  
+}
+
+.toggle-admin:hover {
+  background: #555;
+}
+
+#adminPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100%;
+  background: #121212;
+  color: white;
+  padding: 20px;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  z-index: 1002;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#adminPanel.visible {
+  transform: translateX(0);
+}
+
+#adminPanel button {
+  margin-top: 10px;
+  padding: 12px;
+  background: #2a2a2a;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+#adminPanel button:hover {
+  background: #333;
+}
+
+#adminPanel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#adminPanel ul li {
+  padding: 12px;
+  border-bottom: 1px solid #333;
+  cursor: pointer;
+}
+
+#adminPanel ul li:hover {
+  background-color: #222;
+}
+
+.admin-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.close-admin {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.admin-date {
+  margin-top: auto;
+  padding-top: 15px;
+  font-size: 14px;
+  color: #888;
+}
+
+/* Scroll Utility */
+.scrollable {
+  overflow-y: auto;
+}
+
+/* Responsive Tweak (optional) */
+@media (max-width: 768px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+  .summary-box {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .side-panel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+/* Overlay for Payment Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Make modal visible when active */
+/* .modal-overlay.active {
+  display: flex;
+} */
+.payment-modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.payment-box {
+  background: #2c2c2c;
+  padding: 25px;
+  border-radius: 8px;
+  width: 400px;
+  box-shadow: 0 0 10px #000;
+}
+
+.payment-step {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.payment-modal.hidden {
+  display: none !important;
+}
+
+.method-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.method-buttons button {
+  padding: 12px;
+  font-size: 15px;
+  background: #424242;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.method-buttons button:hover {
+  background: #555;
+}
+
+.payment-inputs div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  padding: 8px 0;
+  color: #fff;
+}
+
+.payment-inputs input {
+  padding: 8px;
+  width: 150px;
+  background: #1a1a1a;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+}
+
+.payment-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn-cancel {
+  background: #b71c1c;
+  color: #fff;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-confirm {
+  background: #2e7d32;
+  color: #fff;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+.stock-label {
+  font-size: 0.8em;
+  color: #888;
+  margin-left: 4px;
+}
+.btn-remove {
+  background-color: #c62828;
+  border: none;
+  color: white;
+  font-size: 16px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn-remove:hover {
+  background-color: #e53935;
+}
+/* Global Theme */
+body {
+  background: #1e1e1e;
+  color: #f0f0f0;
+  font-family: "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+.main-content-container {
+  display: flex;
+  height: calc(100vh - 120px); /* Adjust to your header/footer height */
+  overflow: hidden;
+}
+
+
+/* Layout Grid Structure */
+.sales-terminal {
+  display: grid;
+  grid-template-rows: auto 1fr auto; /* search, content, summary */
+  height: 100vh;
+  grid-template-columns: 1fr 420px; /* wide enough for all buttons */
+}
+/* LEFT SIDE */
+.left-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-right: 10px;
+}
+
+/* RIGHT SIDE */
+.right-panel {
+  width: 330px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.side-panel,
+.footer-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+/* Top Bar (Search) */
+.topbar {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #2c2c2c;
+  border-bottom: 1px solid #333;
+}
+
+.topbar input {
+  padding: 12px;
+  width: 100%;
+  border-radius: 3px;
+  border: none;
+  background: #1a1a1a;
+  color: #f5f5f5;
+  font-size: 16px;
+  outline: none;
+}
+
+.topbar button {
+  margin-left: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  border: none;
+  background: #0d47a1;
+  color: white;
+  font-weight: bold;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.topbar button:hover {
+  background: #1565c0;
+}
+
+/* Main Grid Content (Products + Side Panel) */
+.main-content {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 120px); /* Adjust based on header size */
+  overflow: hidden;
+}
+
+.main-left {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Product Area */
+
+
+.product-area {
+  flex-grow: 1;
+  overflow-y: auto;
+  background-color: #1e1e1e;
+  padding: 0 10px;
+}
+
+
+.sales-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sales-table thead {
+  background: #333;
+  color: #ccc;
+}
+
+.sales-table th,
+.sales-table td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+  font-size: 16px;
+}
+
+.sales-table tbody tr:hover {
+  background: #333;
+  cursor: pointer;
+}
+
+.center-text {
+  text-align: center;
+  color: #888;
+  padding: 20px;
+}
+
+/* Side Panel Buttons */
+.side-panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;
+  background: #1f1f1f;
+  border-left: 1px solid #333;
+  overflow-y: auto;
+}
+
+/* Grid for main button section */
+.side-panel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+/* Utility bottom buttons section */
+.footer-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+
+
+/* Button Styles */
+.wide-btn {
+  background-color: #333;
+  border: none;
+  color: white;
+  padding: 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.wide-btn:hover {
+  background-color: #444;
+}
+
+
+.btn-pay {
+  background: #2e7d32 !important;
+  color: white;
+}
+
+.btn-pay:hover {
+  background: #388e3c !important;
+}
+
+.btn-void {
+  background: #c62828 !important;
+  color: white;
+}
+
+.btn-void:hover {
+  background: #e53935 !important;
+}
+
+/* Summary Section */
+
+.summary-box {
+  background-color: #2a2a2a;
+  padding: 15px 25px;
+  border-top: 1px solid #444;
+  color: white;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
+}
+.summary-line.total {
+  font-weight: bold;
+  font-size: 18px;
+  color: #00ff00;
+}
+
+
+/* Optional Bottom Row with Extra Buttons */
+.footer-buttons {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  background: #1e1e1e;
+  border-top: 1px solid #333;
+}
+
+/* Pagination Styling */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  background: #1e1e1e;
+}
+
+.pagination button {
+  padding: 8px 12px;
+  font-size: 14px;
+  background: #2c2c2c;
+  color: #f0f0f0;
+  border: 1px solid #444;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.pagination button:hover {
+  background: #3a3a3a;
+}
+
+/* Admin Panel Slide-in */
+.toggle-admin {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: #333;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-size: 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 10003;  
+  
+}
+
+.toggle-admin:hover {
+  background: #555;
+}
+
+#adminPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100%;
+  background: #121212;
+  color: white;
+  padding: 20px;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  z-index: 1002;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#adminPanel.visible {
+  transform: translateX(0);
+}
+
+#adminPanel button {
+  margin-top: 10px;
+  padding: 12px;
+  background: #2a2a2a;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+#adminPanel button:hover {
+  background: #333;
+}
+
+#adminPanel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#adminPanel ul li {
+  padding: 12px;
+  border-bottom: 1px solid #333;
+  cursor: pointer;
+}
+
+#adminPanel ul li:hover {
+  background-color: #222;
+}
+
+.admin-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.close-admin {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.admin-date {
+  margin-top: auto;
+  padding-top: 15px;
+  font-size: 14px;
+  color: #888;
+}
+
+/* Scroll Utility */
+.scrollable {
+  overflow-y: auto;
+}
+
+/* Responsive Tweak (optional) */
+@media (max-width: 768px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+  .summary-box {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .side-panel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+/* Overlay for Payment Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Make modal visible when active */
+/* .modal-overlay.active {
+  display: flex;
+} */
+.payment-modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.payment-box {
+  background: #2c2c2c;
+  padding: 25px;
+  border-radius: 8px;
+  width: 400px;
+  box-shadow: 0 0 10px #000;
+}
+
+.payment-step {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.payment-modal.hidden {
+  display: none !important;
+}
+
+.method-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.method-buttons button {
+  padding: 12px;
+  font-size: 15px;
+  background: #424242;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.method-buttons button:hover {
+  background: #555;
+}
+
+.payment-inputs div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  padding: 8px 0;
+  color: #fff;
+}
+
+.payment-inputs input {
+  padding: 8px;
+  width: 150px;
+  background: #1a1a1a;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+}
+
+.payment-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn-cancel {
+  background: #b71c1c;
+  color: #fff;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-confirm {
+  background: #2e7d32;
+  color: #fff;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+.stock-label {
+  font-size: 0.8em;
+  color: #888;
+  margin-left: 4px;
+}
+.btn-remove {
+  background-color: #c62828;
+  border: none;
+  color: white;
+  font-size: 16px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn-remove:hover {
+  background-color: #e53935;
+}
+
+
+/* sales hisotry.php */
+/* Container */
+.history-container {
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 10px;
+    color: #f0f0f0;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+/* Title */
+.history-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #00d084;
+    border-bottom: 2px solid #00d084;
+    padding-bottom: 5px;
+}
+
+/* Table */
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.history-table thead {
+    background-color: #00d084;
+    color: #000;
+}
+
+.history-table thead th {
+    padding: 12px 10px;
+    font-weight: 600;
+    text-align: left;
+    font-size: 14px;
+}
+
+.history-table tbody tr {
+    transition: background 0.3s ease;
+}
+
+.history-table tbody tr:nth-child(even) {
+    background-color: #242424;
+}
+
+.history-table tbody tr:hover {
+    background-color: #333;
+}
+
+.history-table td {
+    padding: 10px;
+    font-size: 13px;
+    border-bottom: 1px solid #444;
+}
+
+/* Buttons */
+.btn-history {
+    background-color: #00d084;
+    color: #000;
+    border: none;
+    padding: 6px 14px;
+    font-size: 13px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-history:hover {
+    background-color: #00b06a;
+}
+
+/* Pagination */
+.history-pagination {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+.history-pagination button {
+    background: #333;
+    border: 1px solid #555;
+    color: #f0f0f0;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.history-pagination button.active {
+    background-color: #00d084;
+    color: #000;
+}
+
+.history-pagination button:hover {
+    background-color: #555;
+}
+/* Global Theme */
+body {
+  background: #1e1e1e;
+  color: #f0f0f0;
+  font-family: "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+.main-content-container {
+  display: flex;
+  height: calc(100vh - 120px); /* Adjust to your header/footer height */
+  overflow: hidden;
+}
+
+
+/* Layout Grid Structure */
+.sales-terminal {
+  display: grid;
+  grid-template-rows: auto 1fr auto; /* search, content, summary */
+  height: 100vh;
+  grid-template-columns: 1fr 420px; /* wide enough for all buttons */
+}
+/* LEFT SIDE */
+.left-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-right: 10px;
+}
+
+/* RIGHT SIDE */
+.right-panel {
+  width: 330px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.side-panel,
+.footer-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+/* Top Bar (Search) */
+.topbar {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #2c2c2c;
+  border-bottom: 1px solid #333;
+}
+
+.topbar input {
+  padding: 12px;
+  width: 100%;
+  border-radius: 3px;
+  border: none;
+  background: #1a1a1a;
+  color: #f5f5f5;
+  font-size: 16px;
+  outline: none;
+}
+
+.topbar button {
+  margin-left: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  border: none;
+  background: #0d47a1;
+  color: white;
+  font-weight: bold;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.topbar button:hover {
+  background: #1565c0;
+}
+
+/* Main Grid Content (Products + Side Panel) */
+.main-content {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 120px); /* Adjust based on header size */
+  overflow: hidden;
+}
+
+.main-left {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Product Area */
+
+
+.product-area {
+  flex-grow: 1;
+  overflow-y: auto;
+  background-color: #1e1e1e;
+  padding: 0 10px;
+}
+
+
+.sales-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sales-table thead {
+  background: #333;
+  color: #ccc;
+}
+
+.sales-table th,
+.sales-table td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 1px solid #444;
+  font-size: 16px;
+}
+
+.sales-table tbody tr:hover {
+  background: #333;
+  cursor: pointer;
+}
+
+.center-text {
+  text-align: center;
+  color: #888;
+  padding: 20px;
+}
+
+/* Side Panel Buttons */
+.side-panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;
+  background: #1f1f1f;
+  border-left: 1px solid #333;
+  overflow-y: auto;
+}
+
+/* Grid for main button section */
+.side-panel {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+/* Utility bottom buttons section */
+.footer-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+
+
+/* Button Styles */
+.wide-btn {
+  background-color: #333;
+  border: none;
+  color: white;
+  padding: 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.wide-btn:hover {
+  background-color: #444;
+}
+
+
+.btn-pay {
+  background: #2e7d32 !important;
+  color: white;
+}
+
+.btn-pay:hover {
+  background: #388e3c !important;
+}
+
+.btn-void {
+  background: #c62828 !important;
+  color: white;
+}
+
+.btn-void:hover {
+  background: #e53935 !important;
+}
+
+/* Summary Section */
+
+.summary-box {
+  background-color: #2a2a2a;
+  padding: 15px 25px;
+  border-top: 1px solid #444;
+  color: white;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
+}
+.summary-line.total {
+  font-weight: bold;
+  font-size: 18px;
+  color: #00ff00;
+}
+
+
+/* Optional Bottom Row with Extra Buttons */
+.footer-buttons {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  background: #1e1e1e;
+  border-top: 1px solid #333;
+}
+
+/* Pagination Styling */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  background: #1e1e1e;
+}
+
+.pagination button {
+  padding: 8px 12px;
+  font-size: 14px;
+  background: #2c2c2c;
+  color: #f0f0f0;
+  border: 1px solid #444;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.pagination button:hover {
+  background: #3a3a3a;
+}
+
+/* Admin Panel Slide-in */
+.toggle-admin {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: #333;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-size: 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 10003;  
+  
+}
+
+.toggle-admin:hover {
+  background: #555;
+}
+
+#adminPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100%;
+  background: #121212;
+  color: white;
+  padding: 20px;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  z-index: 1002;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#adminPanel.visible {
+  transform: translateX(0);
+}
+
+#adminPanel button {
+  margin-top: 10px;
+  padding: 12px;
+  background: #2a2a2a;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+#adminPanel button:hover {
+  background: #333;
+}
+
+#adminPanel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#adminPanel ul li {
+  padding: 12px;
+  border-bottom: 1px solid #333;
+  cursor: pointer;
+}
+
+#adminPanel ul li:hover {
+  background-color: #222;
+}
+
+.admin-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.close-admin {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.admin-date {
+  margin-top: auto;
+  padding-top: 15px;
+  font-size: 14px;
+  color: #888;
+}
+
+/* Scroll Utility */
+.scrollable {
+  overflow-y: auto;
+}
+
+/* Responsive Tweak (optional) */
+@media (max-width: 768px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+  .summary-box {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .side-panel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+/* Overlay for Payment Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Make modal visible when active */
+/* .modal-overlay.active {
+  display: flex;
+} */
+.payment-modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.payment-box {
+  background: #2c2c2c;
+  padding: 25px;
+  border-radius: 8px;
+  width: 400px;
+  box-shadow: 0 0 10px #000;
+}
+
+.payment-step {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.payment-modal.hidden {
+  display: none !important;
+}
+
+.method-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.method-buttons button {
+  padding: 12px;
+  font-size: 15px;
+  background: #424242;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.method-buttons button:hover {
+  background: #555;
+}
+
+.payment-inputs div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  padding: 8px 0;
+  color: #fff;
+}
+
+.payment-inputs input {
+  padding: 8px;
+  width: 150px;
+  background: #1a1a1a;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+}
+
+.payment-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn-cancel {
+  background: #b71c1c;
+  color: #fff;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-confirm {
+  background: #2e7d32;
+  color: #fff;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+.stock-label {
+  font-size: 0.8em;
+  color: #888;
+  margin-left: 4px;
+}
+.btn-remove {
+  background-color: #c62828;
+  border: none;
+  color: white;
+  font-size: 16px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn-remove:hover {
+  background-color: #e53935;
+}
+
+/* -------- Sales History (page-only) -------- */
+.history-wrap{
+  --bg:#141414; --panel:#1b1b1b; --panel-2:#222; --muted:#9aa0a6;
+  --accent:#00d084; --accent-2:#00b06a; --text:#f0f0f0; --danger:#e65b5b;
+  display:flex; flex-direction:column; gap:14px; padding:18px;
+  background:var(--bg); color:var(--text);
+}
+
+/* Header row */
+.history-head{display:flex; align-items:center; justify-content:space-between;}
+.history-head h2{margin:0; font-weight:700; letter-spacing:.3px}
+
+/* Filter bar */
+.history-filters{
+  display:grid; grid-template-columns:repeat(5,max-content) 1fr max-content;
+  gap:12px; align-items:end; background:var(--panel); padding:12px 14px;
+  border:1px solid #2e2e2e; border-radius:10px;
+}
+.history-filters label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
+.history-filters input[type="date"],
+.history-filters input[type="text"],
+.history-filters select{
+  background:#101010; border:1px solid #343434; color:var(--text);
+  padding:10px 12px; border-radius:8px; min-width:180px; outline:none;
+}
+.history-btn{background:var(--accent); color:#000; border:none; padding:10px 14px;
+  border-radius:8px; font-weight:600; cursor:pointer}
+.history-btn:hover{background:var(--accent-2)}
+.history-chip{background:#0f0f0f; padding:10px 12px; border-radius:8px; border:1px solid #2c2c2c}
+
+/* Table */
+.history-table{
+  width:100%; border-collapse:separate; border-spacing:0; overflow:hidden;
+  background:var(--panel); border:1px solid #2e2e2e; border-radius:12px;
+}
+.history-table thead th{
+  position:sticky; top:0; z-index:2; background:linear-gradient(#242424,#1c1c1c);
+  color:#e9e9e9; text-align:left; font-size:13px; letter-spacing:.2px;
+  padding:12px 14px; border-bottom:1px solid #343434; user-select:none;
+}
+.history-table thead th.sortable{cursor:pointer}
+.history-table thead th.sortable::after{
+  content:"⇅"; font-size:11px; opacity:.55; margin-left:6px
+}
+.history-table thead th.sortable[data-dir="asc"]::after{content:"▲"}
+.history-table thead th.sortable[data-dir="desc"]::after{content:"▼"}
+
+.history-table tbody td{
+  padding:12px 14px; border-bottom:1px solid #2b2b2b; font-size:14px;
+}
+.history-table tbody tr:nth-child(even){background:var(--panel-2)}
+.history-table tbody tr:hover{background:#2b2b2b}
+
+/* Small badges for payment type */
+.pay-badge{display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:600}
+.pay-cash{background:#123d2a; color:#57e19b; border:1px solid #275f4b}
+.pay-card{background:#1f2c4b; color:#8bb4ff; border:1px solid #344e84}
+.pay-credit{background:#3d1b2b; color:#ff9cb5; border:1px solid #6a2c45}
+
+/* Pagination */
+.history-paging{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin-top:10px;
+}
+.history-paging .group{display:flex; gap:8px; align-items:center}
+.page-btn{
+  background:#0f0f0f; color:var(--text); border:1px solid #2f2f2f; padding:8px 12px;
+  border-radius:8px; cursor:pointer;
+}
+.page-btn[disabled]{opacity:.45; cursor:not-allowed}
+.page-btn.active{background:var(--accent); color:#000; border-color:transparent}
+.page-size{background:#101010; color:var(--text); border:1px solid #343434; padding:8px 10px; border-radius:8px}
+
+/* Scrollbar (WebKit) */
+.history-table::-webkit-scrollbar,.history-wrap::-webkit-scrollbar{height:10px;width:10px}
+.history-table::-webkit-scrollbar-thumb,.history-wrap::-webkit-scrollbar-thumb{
+  background:#3a3a3a; border-radius:10px
+}
+
+/* ===== Enhanced Popup Container ===== */
+.custom-modal {
+    background: linear-gradient(145deg, #1e1e1e, #252525);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+    max-width: 520px;
+    width: 100%;
+    animation: fadeInScale 0.25s ease-out;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Header */
+.custom-modal h2 {
+    font-size: 19px;
+    font-weight: 600;
+    color: #f5f5f5;
+    margin-bottom: 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 10px;
+    letter-spacing: 0.5px;
+}
+
+/* Close Button */
+.custom-modal .close-btn {
+    background: linear-gradient(135deg, #ff4d4d, #cc0000);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.3s ease;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+.custom-modal .close-btn:hover {
+    background: linear-gradient(135deg, #ff6666, #e60000);
+    transform: rotate(90deg);
+}
+
+/* Input Fields */
+.custom-modal input,
+.custom-modal select,
+.custom-modal textarea {
+    background: #2a2a2a;
+    border: 1px solid #444;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px;
+    width: 100%;
+    margin-bottom: 14px;
+    font-size: 14px;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+.custom-modal input:focus,
+.custom-modal select:focus,
+.custom-modal textarea:focus {
+    border-color: #00bcd4;
+    box-shadow: 0 0 5px #00bcd4;
+    outline: none;
+}
+
+/* Labels */
+.custom-modal label {
+    color: #b3b3b3;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+/* Save Button */
+.custom-modal .save-btn {
+    background: linear-gradient(135deg, #00bcd4, #008ba3);
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.custom-modal .save-btn:hover {
+    background: linear-gradient(135deg, #0097a7, #007888);
+    transform: translateY(-2px);
+}
+
+/* Animation */
+@keyframes fadeInScale {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+.grid-2-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+
+/* ===== Admin popups: Cash In/Out + Credit Payment ===== */
+/* Scope to the injected admin modal so we don't affect other forms */
+#adminModal .pos-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 8px 2px;
+}
+
+/* Full-width row (e.g., Note) */
+#adminModal .pos-form .full {
+  grid-column: 1 / -1;
+}
+
+/* Field group */
+#adminModal .pos-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Labels */
+#adminModal .pos-form label {
+  color: #d8d8d8;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Inputs / selects / textareas */
+#adminModal .pos-form input[type="text"],
+#adminModal .pos-form input[type="number"],
+#adminModal .pos-form input[type="search"],
+#adminModal .pos-form input[type="email"],
+#adminModal .pos-form select,
+#adminModal .pos-form textarea {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: #202020;
+  color: #f2f2f2;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.25;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+/* Focus state */
+#adminModal .pos-form input:focus,
+#adminModal .pos-form select:focus,
+#adminModal .pos-form textarea:focus {
+  outline: none;
+  border-color: #00bcd4;
+  box-shadow: 0 0 0 3px rgba(0,188,212,.18);
+}
+
+/* Placeholder */
+#adminModal .pos-form ::placeholder { color: #9aa0a6; }
+
+/* Compact select arrow (keeps dark look) */
+#adminModal .pos-form select {
+  background-image:
+    linear-gradient(45deg, transparent 50%, #cfd8dc 50%),
+    linear-gradient(135deg, #cfd8dc 50%, transparent 50%),
+    linear-gradient(to right, #2b2b2b, #2b2b2b);
+  background-position:
+    calc(100% - 18px) 16px,
+    calc(100% - 12px) 16px,
+    calc(100% - 36px) 0.5em;
+  background-size: 6px 6px, 6px 6px, 1px 1.6em;
+  background-repeat: no-repeat;
+  padding-right: 34px;
+}
+
+/* Remove spinners for number inputs */
+#adminModal .pos-form input[type="number"]::-webkit-outer-spin-button,
+#adminModal .pos-form input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+/*#adminModal .pos-form input[type="number"] { -moz-appearance: textfield; }
+*/
+#adminModal .pos-form input[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
+    appearance: textfield; /* Standard property for compatibility */
+}
+/* Card-like block around the first row (optional, matches your screenshot) */
+#adminModal .pos-form .card {
+  background: #191919;
+  border: 1px solid #2b2b2b;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+
+/* Footer Save button inside admin modal */
+#adminModal .save-btn,
+#adminModal .wide-btn.save-btn {
+  background: #00bcd4;
+  color: #001015;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s ease, transform .05s ease;
+}
+#adminModal .save-btn:hover { background: #00a6be; }
+#adminModal .save-btn:active { transform: translateY(1px); }
+
+/* Responsive: stack to one column on narrow screens */
+@media (max-width: 720px) {
+  #adminModal .pos-form { grid-template-columns: 1fr; }
+}
+.eod-header { display:flex; gap:10px; align-items:center; }
+.eod-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.eod-grid .span-2 { grid-column:1 / -1; }
+.card { background:#1b1b1b; border:1px solid #333; border-radius:10px; padding:12px; }
+.card h4 { margin:0 0 8px; color:#eee; }
+.card .row { display:flex; justify-content:space-between; margin:4px 0; color:#ddd; }
+.card .row.total { font-weight:700; }
+.eod-table { width:100%; border-collapse:collapse; }
+.eod-table th, .eod-table td { padding:8px 6px; border-bottom:1px solid #2a2a2a; }
+.muted { color:#9aa0a6; font-size:12px; }
+
+
+.eod-grid { display:grid; gap:12px; grid-template-columns:1fr 1fr; }
+.eod-grid .card { background:#1b1b1b; border:1px solid #333; border-radius:10px; padding:12px; }
+.eod-grid .card h4 { margin:0 0 8px; color:#ddd; }
+.eod-grid .card label { display:block; margin:8px 0 4px; color:#bbb; }
+.eod-grid .card input, .eod-grid .card select, .eod-grid .card textarea {
+  width:100%; background:#111; color:#eee; border:1px solid #333; border-radius:8px; padding:10px;
+}

@@ -7,9 +7,22 @@ $units      = $pdo->query("SELECT * FROM units ORDER BY name ASC")->fetchAll();
 ?>
 
 <!-- Close button -->
-<button class="close-btn" onclick="hidePanel()">
-    <i data-lucide="x"></i>
+<button class="close-btn" onclick="hidePanel()" aria-label="Close">
+  <svg xmlns="http://www.w3.org/2000/svg"
+       width="18"
+       height="18"
+       viewBox="0 0 24 24"
+       fill="none"
+       stroke="currentColor"
+       stroke-width="2.5"
+       stroke-linecap="round"
+       stroke-linejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
 </button>
+
+
 
 <h2>
     <i data-lucide="package-plus"></i>

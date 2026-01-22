@@ -2,24 +2,13 @@
 <link rel="stylesheet" href="../../assets/css/terminal.css">
 
 <!-- Terminal starts here -->
-<div class="sales-terminal" data-year="<?php echo date('Y'); ?>" style="margin-top: 60px;">
+<div class="sales-terminal" style="margin-top: 60px;">
 
-
-<!-- Top Search Bar -->
-<div class="topbar">
-  <input
-    type="text"
-    id="productSearch"
-    placeholder="Search products by name, code or barcode..."
-    autofocus
-  >
-  <button onclick="triggerSearch()">
-    <i data-lucide="search"></i>
-    F3 Search
-  </button>
-</div>
-
-
+  <!-- Top Search Bar -->
+  <div class="topbar">
+    <input type="text" id="productSearch" placeholder="🔍 Search products by name, code or barcode..." autofocus>
+    <button onclick="triggerSearch()">F3 Search</button>
+  </div>
 
   <!-- Main Layout Container (NOW FLEXBOX) -->
   <div class="main-layout" style="display: flex; gap: 20px; height: calc(100vh - 140px); padding: 10px;">
@@ -79,36 +68,34 @@
       </div>
     </div>
 
-<!-- RIGHT: Action Buttons -->
-<div class="right-panel" style="width: 330px; display: flex; flex-direction: column; justify-content: space-between;">
+    <!-- RIGHT: Action Buttons -->
+    <div class="right-panel" style="width: 330px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div class="side-panel" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+        <button class="wide-btn" id="btnSearch">F3 🔍 Search</button>
+        <button class="wide-btn" id="btnQuantity">F4 ➕ Quantity</button>
+        <button class="wide-btn" id="btnNewSale">F8 ➕ New Sale</button>
+        <button class="wide-btn" id="btncash">F12 💵 Cash</button>
+        <button class="wide-btn" id="btncredit">💳 Credit Card</button>
+        <button class="wide-btn" id="btndebitcard">🏦 Debit Card</button>
+        <button class="wide-btn" id="btncheck">💸 Check</button>
+        <button class="wide-btn" id="btnvoucher">📄 Voucher</button>
+        <button class="wide-btn" id="giftcard">🎫 Gift Card</button>
+      </div>
 
-  <div class="side-panel" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-    <button class="wide-btn" id="btnSearch">F3 <i data-lucide="search"></i> Search</button>
-    <button class="wide-btn" id="btnQuantity">F4 <i data-lucide="plus"></i> Quantity</button>
-    <button class="wide-btn" id="btnNewSale">F8 <i data-lucide="file-plus"></i> New Sale</button>
-    <button class="wide-btn" id="btncash">F12 <i data-lucide="banknote"></i> Cash</button>
-    <button class="wide-btn" id="btncredit"><i data-lucide="credit-card"></i> Credit Card</button>
-    <button class="wide-btn" id="btndebitcard"><i data-lucide="landmark"></i> Debit Card</button>
-    <button class="wide-btn" id="btncheck"><i data-lucide="receipt"></i> Check</button>
-    <button class="wide-btn" id="btnvoucher"><i data-lucide="file-text"></i> Voucher</button>
-    <button class="wide-btn" id="giftcard"><i data-lucide="ticket"></i> Gift Card</button>
+      <div class="footer-buttons" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px;">
+        <button class="wide-btn" id="btncashdrawer">🧾 Cash Drawer</button>
+        <button class="wide-btn" id="btndiscount">F2 🏷️ Discount</button>
+        <button class="wide-btn" id="btncomment">💬 Comment</button>
+        <button class="wide-btn" id="btncustomer">👤 Customer</button>
+        <button class="wide-btn" id="btntransfer">🔁 Transfer</button>
+        <button class="wide-btn" id="btnrefund">🔄 Refund</button>
+        <button class="wide-btn" id="btnlock">🔒 Lock</button>
+        <button class="wide-btn" id="btnsave">F9 💾 Save</button>
+        <button class="wide-btn btn-pay" id="btnPayment">F10 💵 Payment</button>
+        <button class="wide-btn btn-void" id="btnVoid">🗑️ Void Order</button>
+      </div>
+    </div>
   </div>
-
-  <div class="footer-buttons" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px;">
-    <button class="wide-btn" id="btncashdrawer"><i data-lucide="archive"></i> Cash Drawer</button>
-    <button class="wide-btn" id="btndiscount">F2 <i data-lucide="tag"></i> Discount</button>
-    <button class="wide-btn" id="btncomment"><i data-lucide="message-square"></i> Comment</button>
-    <button class="wide-btn" id="btncustomer"><i data-lucide="user"></i> Customer</button>
-    <button class="wide-btn" id="btntransfer"><i data-lucide="repeat"></i> Transfer</button>
-    <button class="wide-btn" id="btnrefund"><i data-lucide="rotate-ccw"></i> Refund</button>
-    <button class="wide-btn" id="btnlock"><i data-lucide="lock"></i> Lock</button>
-    <button class="wide-btn" id="btnsave">F9 <i data-lucide="save"></i> Save</button>
-    <button class="wide-btn btn-pay" id="btnPayment">F10 <i data-lucide="banknote"></i> Payment</button>
-    <button class="wide-btn btn-void" id="btnVoid"><i data-lucide="trash-2"></i> Void Order</button>
-  </div>
-
-</div>
-
 
   <!-- Admin Controls -->
   <button class="toggle-admin">☰</button>
@@ -117,51 +104,20 @@
   <div id="adminPanel" class="admin-panel">
     <div class="admin-panel-header">
       <h3>POS - Admin</h3>
-      <button onclick="toggleAdminPanel()" class="close-admin">
-  <i data-lucide="x"></i>
-</button>
-
+      <button onclick="toggleAdminPanel()" class="close-admin">✖</button>
     </div>
     <ul>
-  <li onclick="navigateTo('management')">
-    <i data-lucide="tool"></i> Management
-  </li>
-
-  <li onclick="navigateTo('sales-history')">
-    <i data-lucide="bar-chart-3"></i> View sales history
-  </li>
-
-  <li onclick="navigateTo('open-sales')">
-    <i data-lucide="folder-open"></i> View open sales
-  </li>
-
-  <li onclick="navigateTo('cash-in-out')">
-    <i data-lucide="banknote"></i> Cash In / Out
-  </li>
-
-  <li onclick="navigateTo('credit-payments')">
-    <i data-lucide="credit-card"></i> Credit payments
-  </li>
-
-  <li onclick="navigateTo('end-of-day')">
-    <i data-lucide="calendar-check"></i> End of day
-  </li>
-
-  <hr>
-
-  <li onclick="navigateTo('user-info')">
-    <i data-lucide="user"></i> User info
-  </li>
-
-  <li onclick="navigateTo('sign-out')">
-    <i data-lucide="log-out"></i> Sign out
-  </li>
-
-  <li onclick="navigateTo('feedback')">
-    <i data-lucide="megaphone"></i> Feedback
-  </li>
-</ul>
-
+      <li onclick="navigateTo('management')">🛠️ Management</li>
+      <li onclick="navigateTo('sales-history')">📊 View sales history</li>
+      <li onclick="navigateTo('open-sales')">📂 View open sales</li>
+      <li onclick="navigateTo('cash-in-out')">💰 Cash In / Out</li>
+      <li onclick="navigateTo('credit-payments')">🏦 Credit payments</li>
+      <li onclick="navigateTo('end-of-day')">📅 End of day</li>
+      <hr>
+      <li onclick="navigateTo('user-info')">👤 User info</li>
+      <li onclick="navigateTo('sign-out')">🚪 Sign out</li>
+      <li onclick="navigateTo('feedback')">📢 Feedback</li>
+    </ul>
     <div class="admin-date"><?php echo date('d/m/Y'); ?></div>
   </div>
 </div> <!-- sales-terminal ends -->
@@ -172,28 +128,13 @@
     <!-- step 1: method selection -->
     <div id="step1" class="payment-step">
       <h3>Select Payment Method</h3>
-<div class="method-buttons">
-  <button onclick="choosePayment('Cash')">
-    <i data-lucide="banknote"></i> Cash
-  </button>
-
-  <button onclick="choosePayment('Credit Card')">
-    <i data-lucide="credit-card"></i> Credit Card
-  </button>
-
-  <button onclick="choosePayment('Debit Card')">
-    <i data-lucide="landmark"></i> Debit Card
-  </button>
-
-  <button onclick="choosePayment('Voucher')">
-    <i data-lucide="file-text"></i> Voucher
-  </button>
-
-  <button onclick="choosePayment('Gift Card')">
-    <i data-lucide="gift"></i> Gift Card
-  </button>
-</div>
-
+      <div class="method-buttons">
+        <button onclick="choosePayment('Cash')">💵 Cash</button>
+        <button onclick="choosePayment('Credit Card')">💳 Credit Card</button>
+        <button onclick="choosePayment('Debit Card')">🏧 Debit Card</button>
+        <button onclick="choosePayment('Voucher')">📄 Voucher</button>
+        <button onclick="choosePayment('Gift Card')">🎁 Gift Card</button>
+      </div>
       <button class="btn-cancel" onclick="closePaymentModal()">Cancel</button>
     </div>
 
@@ -215,15 +156,9 @@
         </div>
       </div>
       <div class="payment-actions">
-  <button class="btn-cancel" onclick="backToMethods()">
-    <i data-lucide="arrow-left"></i> Back
-  </button>
-
-  <button class="btn-confirm" onclick="completePayment()">
-    <i data-lucide="check-circle"></i> Complete
-  </button>
-</div>
-
+        <button class="btn-cancel" onclick="backToMethods()">← Back</button>
+        <button class="btn-confirm" onclick="completePayment()">✅ Complete</button>
+      </div>
     </div>
   </div>
 </div>
@@ -235,22 +170,10 @@
   <div style="background:#1f1f1f; width: 90vw; height: 90vh; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.5); display:flex; flex-direction:column;">
     <div style="padding:10px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333;">
       <strong>Receipt Preview</strong>
-     <div>
-  <button
-    onclick="document.getElementById('receiptFrame').contentWindow.print()"
-    class="wide-btn"
-  >
-    <i data-lucide="printer"></i> Print
-  </button>
-
-  <button
-    onclick="closeReceipt()"
-    class="wide-btn btn-void"
-  >
-    <i data-lucide="x-circle"></i> Close
-  </button>
-</div>
-
+      <div>
+        <button onclick="document.getElementById('receiptFrame').contentWindow.print()" class="wide-btn">🖨️ Print</button>
+        <button onclick="closeReceipt()" class="wide-btn btn-void">Close ✖</button>
+      </div>
     </div>
     <iframe id="receiptFrame" style="flex:1; border:none; background:#fff;"></iframe>
   </div>
@@ -281,6 +204,8 @@ function closeReceipt() {
 
 
 
+
+<?php include_once __DIR__ . '/../../includes/footer.php'; ?>
 
 
  <script>
@@ -325,7 +250,7 @@ function navigateTo(module) {
 
     case 'sign-out':
       // your logout path may differ
-      window.location.href = '/POS_UG/views/dashboard.php';
+      window.location.href = '/POS_UG/logout.php';
       break;
 
     case 'feedback':
@@ -338,7 +263,3 @@ function navigateTo(module) {
 }
 
 </script> 
-<script src="https://unpkg.com/lucide@latest"></script>
-<script>
-  lucide.createIcons();
-</script>

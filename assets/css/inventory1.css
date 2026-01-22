@@ -1,0 +1,252 @@
+/* ========== Global Container ========== */
+.container {
+    max-width: 1100px;
+    margin: 40px auto;
+    background: #ffffff;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+/* ========== Inventory Form ========== */
+.inventory-form label {
+    display: block;
+    margin-top: 15px;
+    font-weight: 600;
+    color: #333;
+}
+
+.inventory-form input,
+.inventory-form select,
+.inventory-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 15px;
+}
+
+.inventory-form textarea {
+    resize: vertical;
+}
+
+.inventory-form button {
+    width: 100%;
+    padding: 12px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background-color 0.3s ease;
+}
+
+.inventory-form button:hover {
+    background-color: #218838;
+}
+
+/* ========== Alerts ========== */
+.alert.success,
+.alert.error {
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.alert.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.alert.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* ========== Table ========== */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.table th, .table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.table th {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+/* Type Coloring */
+.table td .in {
+    color: green;
+    font-weight: bold;
+}
+
+.table td .out {
+    color: red;
+    font-weight: bold;
+}
+
+/* Action Links */
+.table td.actions a {
+    margin-right: 8px;
+    text-decoration: none;
+    color: #007bff;
+    font-weight: 500;
+}
+
+.table td.actions a:hover {
+    text-decoration: underline;
+}
+
+/* ========== Pagination ========== */
+.pagination {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.pagination a {
+    display: inline-block;
+    padding: 8px 14px;
+    background: #eee;
+    margin: 3px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #333;
+}
+
+.pagination a.active-page {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* ========== Header Styling ========== */
+.container h2 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+/* ===== Modal Styling ===== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: none;  /* ✅ Hide by default */
+  justify-content: center;
+  align-items: center;
+}
+
+
+.modal-content {
+  background: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 20px;
+  color: #333;
+}
+
+.modal-content .danger {
+  background-color: #dc3545;
+}
+
+.modal-content .danger:hover {
+  background-color: #c82333;
+}
+.modal-content {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-input {
+  padding: 10px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0,123,255,0.3);
+}
+
+.modal-btn {
+  padding: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal-btn:hover {
+  background-color: #0056b3;
+}
+.danger-btn {
+  background-color: #dc3545;
+}
+
+.danger-btn:hover {
+  background-color: #c82333;
+}
+
+/* Optional: Smooth fade-in/fade-out transition */
+.modal {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

@@ -4,6 +4,8 @@ require_once __DIR__ . '/../config/db.php';
 session_start();
 
 header('Content-Type: application/json');
+ini_set('display_errors', 0);
+error_reporting(0);
 
 $userId = $_SESSION['user_id'] ?? null;
 $roleId = $_SESSION['role_id'] ?? null;
@@ -150,25 +152,39 @@ exit;
   }
 
   /* ---------- SALES TREND ---------- */
-  case 'sales_trend': {
+case 'sales_trend': {
 
-    if ($roleId != 1) {
-      echo json_encode(['success'=>true,'rows'=>[]]);
-      exit;
-    }
-
-    [$s,$e] = daterange(13);
-    $stmt = $pdo->prepare("
-      SELECT DATE(created_at) d, SUM(total_amount) total
-      FROM sales
-      WHERE created_at BETWEEN :s AND :e
-      GROUP BY DATE(created_at)
-      ORDER BY d
-    ");
-    $stmt->execute([':s'=>$s,':e'=>$e]);
-    echo json_encode(['success'=>true,'rows'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
-    break;
+  if ($roleId != 1) {
+    echo json_encode(['success'=>true,'rows'=>[]]);
+    exit;
   }
+
+  [$s,$e] = daterange(13);
+
+  // Fetch actual sales
+  $stmt = $pdo->prepare("
+    SELECT DATE(created_at) d, SUM(total_amount) total
+    FROM sales
+    WHERE created_at BETWEEN :s AND :e
+    GROUP BY DATE(created_at)
+  ");
+  $stmt->execute([':s'=>$s,':e'=>$e]);
+  $data = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // d => total
+
+  // Build full 14-day range
+  $rows = [];
+  for ($i = 13; $i >= 0; $i--) {
+    $date = date('Y-m-d', strtotime("-$i days"));
+    $rows[] = [
+      'd'     => $date,
+      'total' => (float)($data[$date] ?? 0)
+    ];
+  }
+
+  echo json_encode(['success'=>true,'rows'=>$rows]);
+  exit;
+}
+
 
   /* ---------- SALES BY CATEGORY ---------- */
   case 'sales_by_category': {
@@ -217,6 +233,111 @@ exit;
     echo json_encode(['success'=>true,'rows'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
     break;
   }
+
+/* ---------- SALES VS EXPENSES ---------- */
+  case 'sales_vs_expenses': {
+
+  if ($roleId != 1) {
+    echo json_encode(['success'=>true,'rows'=>[]]);
+    exit;
+  }
+
+  [$s,$e] = mtd();
+
+  // Sales per day
+  $sales = $pdo->prepare("
+    SELECT DATE(created_at) d, SUM(total_amount) total
+    FROM sales
+    WHERE created_at BETWEEN :s AND :e
+    GROUP BY DATE(created_at)
+  ");
+  $sales->execute([':s'=>$s,':e'=>$e]);
+  $salesData = $sales->fetchAll(PDO::FETCH_KEY_PAIR);
+
+  // Expenses per day
+  $exp = $pdo->prepare("
+    SELECT expense_date d, SUM(amount) total
+    FROM expenses
+    WHERE expense_date BETWEEN :s AND :e
+    GROUP BY expense_date
+  ");
+  $exp->execute([':s'=>$s,':e'=>$e]);
+  $expData = $exp->fetchAll(PDO::FETCH_KEY_PAIR);
+
+  // 🔥 BUILD FULL MTD RANGE
+  $days = [];
+  $start = new DateTime(date('Y-m-01'));
+  $end   = new DateTime();
+
+  while ($start <= $end) {
+    $d = $start->format('Y-m-d');
+    $salesVal = (float)($salesData[$d] ?? 0);
+    $expVal   = (float)($expData[$d] ?? 0);
+
+    $days[] = [
+      'date'     => $d,
+      'sales'    => $salesVal,
+      'expenses' => $expVal,
+      'profit'   => $salesVal - $expVal
+    ];
+
+    $start->modify('+1 day');
+  }
+
+  echo json_encode(['success'=>true,'rows'=>$days]);
+  exit;
+}
+
+/* ---------- PAYMENT METHODS ---------- */
+case 'payment_methods': {
+
+  if ($roleId != 1) {
+    echo json_encode(['success'=>true,'rows'=>[]]);
+    exit;
+  }
+
+  [$s,$e] = mtd();
+
+  $stmt = $pdo->prepare("
+    SELECT payment_type, SUM(total_amount) total
+    FROM sales
+    WHERE created_at BETWEEN :s AND :e
+    GROUP BY payment_type
+  ");
+  $stmt->execute([':s'=>$s,':e'=>$e]);
+
+  echo json_encode(['success'=>true,'rows'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
+  exit;
+}
+
+/* ---------- PRODUCT MARGIN ---------- */
+case 'product_margin': {
+
+  if ($roleId != 1) {
+    echo json_encode(['success'=>true,'rows'=>[]]);
+    exit;
+  }
+
+  [$s,$e] = mtd();
+
+  $stmt = $pdo->prepare("
+    SELECT p.name,
+      SUM(si.quantity * si.unit_price) revenue,
+      SUM(si.cogs_total) cogs,
+      SUM(si.quantity * si.unit_price) - SUM(si.cogs_total) profit
+    FROM sale_items si
+    JOIN products p ON p.id=si.product_id
+    JOIN sales s ON s.id=si.sale_id
+    WHERE s.created_at BETWEEN :s AND :e
+    GROUP BY p.id
+    ORDER BY profit DESC
+    LIMIT 10
+  ");
+  $stmt->execute([':s'=>$s,':e'=>$e]);
+
+  echo json_encode(['success'=>true,'rows'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);
+  exit;
+}
 
   /* ---------- LOW STOCK ---------- */
   case 'low_stock': {

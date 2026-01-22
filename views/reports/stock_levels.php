@@ -25,10 +25,265 @@ if (!isset($embed)) {
   .pill{padding:3px 8px;border-radius:999px;font-size:12px;display:inline-block}
   .pill.low{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
   .pill.oos{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+/* ======================================================
+   STOCK LEVELS – ENTERPRISE THEME OVERRIDE
+   Light & Dark | No HTML / JS Changes
+====================================================== */
+
+/* ------------------------------------------------------
+   THEME TOKENS
+------------------------------------------------------ */
+body[data-theme="light"] {
+  --stk-bg: #f4f6f9;
+  --stk-panel: #ffffff;
+  --stk-header: #ffffff;
+  --stk-border: #e5e7eb;
+
+  --stk-text: #0f172a;
+  --stk-muted: #64748b;
+
+  --stk-hover: #f1f5f9;
+}
+
+body[data-theme="dark"] {
+  --stk-bg: #020617;
+  --stk-panel: #0f172a;
+  --stk-header: #020617;
+  --stk-border: #1e293b;
+
+  --stk-text: #e5e7eb;
+  --stk-muted: #94a3b8;
+
+  --stk-hover: #1e293b;
+}
+
+/* ======================================================
+   PAGE WRAP
+====================================================== */
+.stk-wrap {
+  padding: 12px 0 32px;
+  color: var(--stk-text);
+}
+
+/* Title */
+.stk-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--stk-text);
+}
+
+/* ======================================================
+   FILTER BAR
+====================================================== */
+.stk-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+
+  padding: 12px;
+  margin-bottom: 18px;
+
+  background: var(--stk-panel);
+  border: 1px solid var(--stk-border);
+  border-radius: 14px;
+
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+
+/* Inputs & selects */
+.stk-filters input,
+.stk-filters select {
+  height: 40px;
+  padding: 0 14px;
+
+  background: var(--stk-header);
+  color: var(--stk-text);
+
+  border: 1px solid var(--stk-border);
+  border-radius: 10px;
+
+  font-size: 14px;
+}
+
+.stk-filters input::placeholder {
+  color: var(--stk-muted);
+}
+
+.stk-filters input:focus,
+.stk-filters select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+/* ======================================================
+   ACTION BUTTONS
+====================================================== */
+.stk-run {
+  height: 40px;
+  padding: 0 18px;
+
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    color-mix(in srgb, var(--primary) 75%, black)
+  );
+
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .2px;
+
+  cursor: pointer;
+
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease;
+}
+
+.stk-run:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+}
+
+.stk-run:active {
+  transform: translateY(0);
+}
+
+/* ======================================================
+   KPI CARDS
+====================================================== */
+.stk-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.stk-card {
+  background: var(--stk-panel);
+  border: 1px solid var(--stk-border);
+  border-radius: 16px;
+  padding: 16px;
+
+  box-shadow: 0 12px 40px rgba(0,0,0,.14);
+
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.stk-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 60px rgba(0,0,0,.28);
+}
+
+.stk-card small {
+  font-size: 12px;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  color: var(--stk-muted);
+}
+
+.stk-card h2 {
+  margin-top: 6px;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--stk-text);
+}
+
+/* ======================================================
+   TABLE
+====================================================== */
+.stk-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  background: var(--stk-panel);
+  border: 1px solid var(--stk-border);
+  border-radius: 16px;
+  overflow: hidden;
+
+  box-shadow: 0 16px 50px rgba(0,0,0,.16);
+}
+
+/* Header */
+.stk-table th {
+  padding: 14px;
+
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--stk-panel) 95%, black),
+    color-mix(in srgb, var(--stk-panel) 90%, black)
+  );
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+
+  color: var(--stk-muted);
+  border-bottom: 1px solid var(--stk-border);
+}
+
+/* Body */
+.stk-table td {
+  padding: 14px;
+  font-size: 14px;
+  color: var(--stk-text);
+
+  border-bottom: 1px solid var(--stk-border);
+}
+
+.stk-table tbody tr:hover {
+  background: var(--stk-hover);
+}
+
+.stk-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.stk-right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ======================================================
+   STATUS PILLS
+====================================================== */
+.pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Low stock */
+.pill.low {
+  background: rgba(245,158,11,.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245,158,11,.35);
+}
+
+/* Out of stock */
+.pill.oos {
+  background: rgba(239,68,68,.15);
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,.35);
+}
+
 </style>
 
 <div class="stk-wrap">
-  <h1 class="stk-title">📦 Stock Levels</h1>
+  <h1 class="stk-title"> Stock Levels</h1>
 
   <div class="stk-filters">
     <input id="q" placeholder="Search name or SKU">
