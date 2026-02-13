@@ -22,9 +22,50 @@ $monthStart = date('Y-m-01');
   .rp-title{font-size:22px;margin:0 0 12px}
 
   /* Filter bar */
-  .rp-filters{
-    display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:8px 0 16px;
-  }
+/* ===============================
+   REPORT FILTERS – SMART LAYOUT
+=============================== */
+.rp-filters{
+  display: grid;
+  grid-template-columns:
+    160px   /* From */
+    160px   /* To */
+    180px   /* Group */
+    200px   /* View */
+    minmax(220px, 1fr) /* Search */
+    180px   /* Category */
+    auto    /* Zero stock */
+    140px   /* Min on-hand */
+    auto;   /* Actions */
+  gap: 10px 12px;
+  align-items: end;
+  margin: 12px 0 18px;
+}
+
+
+.rp-filters label{
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  gap: 4px;
+}
+.rp-filters input[type="search"]{
+  min-width: 220px;
+}
+
+.rp-filters input[type="number"]{
+  width: 100%;
+}
+
+.rp-filters select,
+.rp-filters input{
+  height: 42px;
+}
+.rp-filters .rp-run{
+  height: 42px;
+  align-self: center;
+}
+
   .rp-filters input, .rp-filters select{
     padding:10px; border:1px solid #d1d5db; border-radius:8px; background:#fff;
   }
@@ -47,11 +88,52 @@ $monthStart = date('Y-m-01');
   .rp-table td{padding:10px;border-top:1px solid #f1f5f9}
   .rp-right{text-align:right}
 
-  /* Dark mode toggleable (optional) */
-  .dark .rp-card,.dark .rp-panel,.dark .rp-table{background:#0f172a;border-color:#1f2937;color:#e5e7eb}
-  .dark .rp-table th{background:#111827;border-bottom-color:#1f2937}
-  .dark .rp-filters input,.dark .rp-filters select{background:#0b1220;border-color:#1f2937;color:#e5e7eb}
-  .dark .rp-run{background:#2563eb}
+/* =========================================
+   REPORTS — DARK MODE (SCOPED ONLY)
+   Trigger: body[data-theme="dark"]
+========================================= */
+
+body[data-theme="dark"] .rp-filters input,
+body[data-theme="dark"] .rp-filters select {
+  background: var(--bg-panel);
+  color: var(--text-main);
+  border-color: var(--border);
+}
+
+body[data-theme="dark"] .rp-card,
+body[data-theme="dark"] .rp-panel,
+body[data-theme="dark"] .rp-table {
+  background: linear-gradient(
+    180deg,
+    var(--bg-panel),
+    var(--bg-panel-soft, #111827)
+  );
+  border-color: var(--border);
+  color: var(--text-main);
+}
+
+body[data-theme="dark"] .rp-card small {
+  color: var(--text-muted);
+}
+
+body[data-theme="dark"] .rp-table th {
+  background: color-mix(in srgb, var(--bg-panel) 92%, black);
+  color: var(--text-muted);
+  border-bottom-color: var(--border);
+}
+
+body[data-theme="dark"] .rp-table td {
+  color: var(--text-main);
+}
+
+body[data-theme="dark"] .rp-table tr:hover {
+  background: var(--bg-hover);
+}
+
+body[data-theme="dark"] .rp-run {
+  background: linear-gradient(180deg, var(--primary), var(--primary-hover, #3b82f6));
+}
+
 </style>
 
 <div class="rp-wrap">
@@ -86,8 +168,11 @@ $monthStart = date('Y-m-01');
   <label>Min On-hand <input type="number" id="invMin" min="0" value="0" style="width:90px"></label>
   <!-- ✅ END NEW -->
 
-    <button class="rp-run" id="rpRun">Run</button>
-    <button class="rp-run" id="rpExport">Export CSV</button>
+   <div class="rp-actions">
+  <!-- <button class="rp-run" id="rpRun">Run</button> -->
+  <button class="rp-run" id="rpExport">Export CSV</button>
+</div>
+
   </div>
 
   <!-- KPIs -->
@@ -371,7 +456,7 @@ async function run(){
   else await runStaff();
 }
 
-$('#rpRun').addEventListener('click', run);
+//$('#rpRun').addEventListener('click', run);
 // auto-run on load
 run();
 
@@ -488,5 +573,33 @@ async function loadCategories(){
 // run once on load
 loadCategories();
 
+/* =========================================
+   AUTO-RUN WITH DEBOUNCE
+========================================= */
+
+let autoTimer = null;
+
+function autoRun(delay = 400){
+  clearTimeout(autoTimer);
+  autoTimer = setTimeout(run, delay);
+}
+[
+  '#rpFrom',
+  '#rpTo',
+  '#rpGroup',
+  '#rpTab',
+  '#invQ',
+  '#invCat',
+  '#invZero',
+  '#invMin'
+].forEach(sel => {
+  const el = document.querySelector(sel);
+  if (!el) return;
+
+  el.addEventListener(
+    el.type === 'search' || el.type === 'number' ? 'input' : 'change',
+    () => autoRun()
+  );
+});
 
 </script>

@@ -83,6 +83,29 @@ function ugx($n){ return number_format((float)$n, 2); }
     .center { text-align: center; margin-top: 16px; font-size: 13px; }
     .muted { color:#666; }
     @media print { @page { margin: 10mm; } .no-print { display:none; } }
+  .receipt-footer {
+  text-align: center;
+  font-size: 11px;
+  color: #555;
+  margin-top: 14px;
+}
+
+.receipt-footer hr {
+  border: none;
+  border-top: 1px dashed #999;
+  margin: 8px 0;
+}
+
+.footer-brand {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.footer-contact {
+  margin-top: 2px;
+  font-size: 10.5px;
+}
+
   </style>
 </head>
 <body>
@@ -90,7 +113,11 @@ function ugx($n){ return number_format((float)$n, 2); }
     <img src="/POS_UG/assets/images/logo.PNG" alt="Company Logo">
   </div>
 
-  <h2>🧾 TOBY POS RECEIPT</h2>
+<h2>TOBY POS</h2>
+<div class="muted" style="text-align:center; font-size:12px;">
+  Sales Receipt
+</div>
+
 
   <div class="meta">
     <strong>Sale ID:</strong> <?= htmlspecialchars($sale_id) ?><br>
@@ -161,6 +188,15 @@ function ugx($n){ return number_format((float)$n, 2); }
   <?php endif; ?>
 
   <div class="center">Thank you for your purchase!</div>
+<div class="receipt-footer">
+  <hr>
+  <div class="footer-brand">
+    Powered by <strong>Toby POS</strong>
+  </div>
+  <div class="footer-contact">
+    Support: +256 756 566 864 / +256 778 033 726
+  </div>
+</div>
 
   <?php if ($autoPrint): ?>
     <script>window.addEventListener('load', () => window.print());</script>

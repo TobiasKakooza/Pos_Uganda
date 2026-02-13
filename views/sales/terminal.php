@@ -55,16 +55,14 @@
 
         <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
           <span>Tax (%):</span>
-          <input 
-            id="taxRate"
-            type="number"
-            min="0"
-            max="100"
-            value="0"
-            step="0.01"
-            oninput="updateTotals()"
-            style="width: 70px; text-align: right; margin-left: 8px;"
-          />
+        <input 
+  id="taxRate"
+  type="number"
+  value="18"
+  readonly
+  style="width: 70px; text-align: right; margin-left: 8px; background:#333; color:#fff;"
+/>
+
         </div>
 
         <div style="margin-bottom: 8px; display: flex; justify-content: space-between;">

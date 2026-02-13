@@ -183,37 +183,49 @@ function addProductToReceipt(product) {
 }
 
 /* =========================================================
-   Totals (subtotal -> discount -> tax -> total)
+   Totals (subtotal → discount → URA VAT → total)
+   VAT is FIXED at 18% (Uganda – URA)
 ========================================================= */
+
+const VAT_RATE = 18; // URA statutory VAT (DO NOT CHANGE)
+
 function updateTotals() {
   let subtotal = 0;
   const rows = document.querySelectorAll('#receiptItems tr');
 
+  // --- Subtotal ---
   rows.forEach(row => {
     if (row.classList.contains('no-items')) return;
     const amount = parseFloat(row.querySelector('.amount-cell')?.innerText || 0);
     subtotal += amount;
   });
 
-  // Discount
+  // --- Discount ---
   const ctx = window.saleCtx || {};
   let discountAmt = 0;
+
   if (ctx.discountType === 'percent') {
     discountAmt = subtotal * ((+ctx.discountValue || 0) / 100);
   } else if (ctx.discountType === 'amount') {
     discountAmt = Math.min(subtotal, (+ctx.discountValue || 0));
   }
+
   const discountedBase = Math.max(0, subtotal - discountAmt);
 
-  // Tax on discounted base
-  const taxRate   = parseFloat(document.getElementById('taxRate')?.value) || 0;
-  const taxAmount = discountedBase * (taxRate / 100);
-  const total     = discountedBase + taxAmount;
+  // --- URA VAT (18% FIXED) ---
+  const taxRate   = VAT_RATE;
+  const taxAmount = discountedBase * (VAT_RATE / 100);
 
+  // --- Total ---
+  const total = discountedBase + taxAmount;
+
+  // --- UI update ---
   document.getElementById('subtotal').innerText  = subtotal.toFixed(2);
+  document.getElementById('taxRate').value       = VAT_RATE; // enforce UI
   document.getElementById('taxAmount').innerText = taxAmount.toFixed(2);
   document.getElementById('total').innerText     = total.toFixed(2);
 }
+
 
 /* =========================================================
    Clear sale / quantity focus

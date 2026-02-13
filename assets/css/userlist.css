@@ -48,7 +48,11 @@ body {
 .users-page {
   max-width: 1200px;
   margin: 24px auto;
-  background: linear-gradient(180deg, #0f172a, #020617);
+   background: linear-gradient(
+    180deg,
+    var(--bg-soft),
+    var(--bg-page)
+  );
   padding: 28px;
   border-radius: var(--radius);
   box-shadow: 0 30px 80px rgba(0,0,0,.65);
@@ -118,7 +122,7 @@ body {
    CARD + TABLE
 ================================================== */
 .card {
-  background: #020617;
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -129,14 +133,7 @@ body {
   border-collapse: collapse;
 }
 
-.users-table thead {
-  background: #020617;
-  box-shadow: inset 0 -1px 0 var(--border);
-}
-.users-table td strong {
-  font-weight: 600;
-  color: #f8fafc;
-}
+
 
 .users-table th {
   padding: 16px;
@@ -154,25 +151,37 @@ body {
 
 
 
-.users-table td {
+/* .users-table td {
   padding: 20px 18px;
    line-height: 1.4;
   font-size: 14px;
   color: #f1f5f9;   /* brighter than default */
-  border-bottom: 1px solid var(--border);
-}
+  /* //border-bottom: 1px solid var(--border); */
+/* } */ 
 
 .users-table tbody tr {
-  transition: background .15s ease;
+  background: var(--bg-card);
 }
 
 /* ===== DARK TABLE BODY FIX ===== */
 .users-table tbody tr {
-  background: #020617;
+  background: var(--bg-card);
+}
+
+/* .users-table tbody tr:hover {
+  background: #1e293b;
+} */
+.users-table thead {
+  background: var(--bg-soft);
+}
+
+.users-table td,
+.users-table td strong {
+  color: var(--text-main);
 }
 
 .users-table tbody tr:hover {
-  background: #1e293b;
+  background: var(--bg-hover);
 }
 
 .users-table th,
@@ -189,19 +198,34 @@ body {
 
 
 /* FORCE DATA TEXT TO PURE WHITE */
-.users-table tbody td {
+/* .users-table tbody td {
   color: #f8fafc !important;
 }
 
 .users-table tbody td strong {
   color: #ffffff !important;
   font-weight: 600;
+} */
+.users-table tbody td {
+  color: var(--text-main);
+}
+
+.users-table tbody td strong {
+  color: var(--text-main);
+}
+.users-table thead {
+  background: var(--bg-soft);
+}
+
+.users-table tbody tr:hover {
+  background: var(--bg-hover);
 }
 
 /* Email column slightly softer but visible */
 .users-table tbody td:nth-child(2) {
-  color: #e2e8f0 !important;
+  color: var(--text-muted);
 }
+
 
 /* ==================================================
    ROLE BADGES
@@ -446,7 +470,7 @@ body {
   height: 18px;
   left: 3px;
   top: 3px;
-  background: #fff;
+ 
   border-radius: 50%;
   transition: transform .2s ease;
 }
@@ -610,17 +634,31 @@ body {
 /* -------------------------------
    THEME TOKENS (LIGHT + DARK)
 -------------------------------- */
-body[data-theme="light"] {
-  --btn-bg: #2563eb;
-  --btn-bg-2: #1d4ed8;
-  --btn-fg: #ffffff;
+/* ==================================================
+   USERS PAGE — LIGHT MODE OVERRIDES
+================================================== */
+html[data-theme="light"],
+body[data-theme="light"],
+html.light,
+body.light {
+  --bg-page: #f4f6fb;
+  --bg-card: #ffffff;
+  --bg-soft: #f1f5f9;
+  --bg-hover: #e5e7eb;
 
-  --btn-soft-bg: #f1f5f9;
-  --btn-soft-fg: #0f172a;
+  --border: #e5e7eb;
 
-  --btn-border: #e5e7eb;
-  --btn-hover: rgba(37,99,235,.15);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+
+  --danger-bg: #fee2e2;
 }
+
+
 
 body[data-theme="dark"],
 body:not([data-theme]) {
@@ -634,6 +672,7 @@ body:not([data-theme]) {
   --btn-border: #1f2a44;
   --btn-hover: rgba(59,130,246,.22);
 }
+
 
 /* ==================================================
    PRIMARY BUTTON (.btn-primary)
@@ -848,4 +887,188 @@ body:not([data-theme]) {
   .close-btn {
     transition: none !important;
   }
+}
+/* ==================================================
+   USERS PAGE — LIGHT MODE OVERRIDES
+   (Scoped, Non-Destructive)
+================================================== */
+
+body[data-theme="light"] {
+
+  --bg-page: #f4f6fb;
+  --bg-card: #ffffff;
+  --bg-soft: #f1f5f9;
+  --bg-hover: #e5e7eb;
+
+  --border: #e5e7eb;
+
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+
+  --danger-bg: #fee2e2;
+}
+/* ==================================================
+   LIGHT MODE — PERMISSIONS MODAL (ADVANCED OVERRIDE)
+   Clean • Accessible • No Dark Bleed • No Side Effects
+================================================== */
+
+html[data-theme="light"] {
+
+  /* ---------- MODAL OVERLAY ---------- */
+  .modal {
+    background: rgba(241, 245, 249, 0.88);
+    backdrop-filter: blur(8px);
+  }
+
+  /* ---------- MODAL CONTAINER ---------- */
+  .modal-box {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 32px 90px rgba(15, 23, 42, 0.18);
+  }
+
+  /* ---------- SECTION TITLES ---------- */
+  .perm-module-title {
+    color: #334155;
+    font-weight: 600;
+    letter-spacing: .06em;
+  }
+
+  /* ---------- PERMISSION ROWS ---------- */
+  .perm-row {
+    background-color: #ffffff !important;
+    background-image: none !important; /* kills dark gradients */
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  }
+
+  /* Permission labels */
+  .perm-row span {
+    color: #0f172a !important;
+    font-weight: 500;
+    opacity: 1;
+  }
+
+  /* ---------- MODULE SEPARATORS ---------- */
+  .perm-module {
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  /* ---------- TOGGLES ---------- */
+
+  /* OFF state */
+  .slider {
+    background: #c7d2fe;
+  }
+
+  /* Toggle knob */
+  .slider::before {
+    background: #ffffff;
+  }
+
+  /* ON state */
+  .switch input:checked + .slider {
+    background: var(--primary);
+  }
+
+  /* ---------- CLOSE BUTTON ---------- */
+  .close-btn {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+
+  .close-btn:hover {
+    background: #e5e7eb;
+  }
+
+  /* ---------- MODAL FOOTER ---------- */
+  .modal-actions {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 16px;
+  }
+
+  /* ---------- SCROLLBAR (WebKit) ---------- */
+  .modal-box::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+  }
+}
+/* ==================================================
+   LIGHT MODE — PERMISSIONS MODAL (HARD RESET)
+   Authoritative Override • No Dark Inheritance
+================================================== */
+
+html[data-theme="light"] #permissionModal {
+
+  /* ---------- OVERLAY ---------- */
+  background: rgba(241, 245, 249, 0.92) !important;
+  backdrop-filter: blur(8px);
+
+}
+
+/* ---------- MODAL CONTAINER ---------- */
+html[data-theme="light"] #permissionModal .modal-box {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #0f172a !important;
+  box-shadow: 0 32px 90px rgba(15, 23, 42, 0.18);
+}
+
+/* ---------- MODULE TITLES ---------- */
+html[data-theme="light"] #permissionModal .perm-module-title {
+  color: #334155 !important;
+  font-weight: 600;
+}
+
+/* ---------- PERMISSION ROWS ---------- */
+html[data-theme="light"] #permissionModal .perm-row {
+  background: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+
+/* ---------- PERMISSION TEXT ---------- */
+html[data-theme="light"] #permissionModal .perm-row span {
+  color: #0f172a !important;
+  font-weight: 500;
+  opacity: 1 !important;
+}
+
+/* ---------- TOGGLES ---------- */
+html[data-theme="light"] #permissionModal .slider {
+  background: #c7d2fe !important;
+}
+
+html[data-theme="light"] #permissionModal .slider::before {
+  background: #ffffff !important;
+}
+
+html[data-theme="light"] #permissionModal 
+.switch input:checked + .slider {
+  background: var(--primary) !important;
+}
+
+/* ---------- CLOSE BUTTON ---------- */
+html[data-theme="light"] #permissionModal .close-btn {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] #permissionModal .close-btn:hover {
+  background: #e5e7eb !important;
+}
+
+/* ---------- FOOTER ---------- */
+html[data-theme="light"] #permissionModal .modal-actions {
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ---------- SCROLLBAR ---------- */
+html[data-theme="light"] #permissionModal 
+.modal-box::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
 }
